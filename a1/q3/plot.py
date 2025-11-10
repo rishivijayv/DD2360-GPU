@@ -24,15 +24,15 @@ with open(RESULT_FILE) as f:
 
 
 x = np.arange(len(configs))
-width = 0.6  # width of bars
+width = 0.6
 
-# Create stacked bars
+
 plt.bar(x, host_to_device_times, width, label="host_to_device")
 plt.bar(x, kernel_exec_times, width, bottom=host_to_device_times, label="kernel_exec")
 bottoms = np.array(host_to_device_times) + np.array(kernel_exec_times)
 plt.bar(x, device_to_host_times, width, bottom=bottoms, label="device_to_host")
 
-# Labels and title
+
 plt.xticks(x, configs, rotation=45, ha="right")
 plt.ylabel("Time (s)")
 plt.xlabel("Matrix Configurations")
