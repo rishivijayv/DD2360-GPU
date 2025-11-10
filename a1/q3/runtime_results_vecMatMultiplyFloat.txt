@@ -1,0 +1,20 @@
+1200 8900 8900 9000
+host_to_device: 0.079
+kernel_exec: 0.086
+device_to_host: 0.030
+-----------------------
+1200 17800 17800 9000
+host_to_device: 0.152
+kernel_exec: 0.161
+device_to_host: 0.028
+-----------------------
+1200 35600 35600 9000
+host_to_device: 0.306
+kernel_exec: 0.300
+device_to_host: 0.028
+-----------------------
+1200 71200 71200 9000
+host_to_device: 0.615
+kernel_exec: 0.587
+device_to_host: 0.028
+-----------------------

@@ -1,0 +1,245 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,
+            bindingoffset=0.2in,
+            left=1in,
+            right=1in,
+            top=1in,
+            bottom=1in,
+            footskip=.25in]{geometry}
+
+%###############################################################################
+
+%\input{~/layout/global_layout}
+
+
+%###############################################################################
+
+% packages begin
+
+\usepackage[
+  backend=biber,
+  sortcites=true,
+  style=alphabetic,
+  eprint=true,
+  backref=true
+]{biblatex}
+\addbibresource{bibliographie.bib}
+\usepackage[acronym]{glossaries}
+
+\usepackage{euscript}[mathcal]
+% e.g. \mathcal{A} for fancy letters in mathmode
+\usepackage{amsmath,amssymb,amstext,amsthm}
+
+\usepackage{mdframed}
+\newmdtheoremenv[nobreak=true]{problem}{Problem}[subsection]
+\newmdtheoremenv[nobreak=true]{claim}{Claim}[subsection]
+\newtheorem{definition}{Definition}[subsection]
+\newtheorem{lemma}{Lemma}[claim]
+\newtheorem{plemma}{Lemma}[problem]
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\usepackage{enumerate}
+\usepackage[pdftex]{graphicx}
+\usepackage{subcaption}
+% 'draft' für schnelleres rendern mitübergeben -> [pdftex, draft]
+% dadruch wird nicht das bild mitgerendered, sondern nur ein kasten mit bildname -> schont ressourcen
+
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,matrix,positioning,shapes}
+
+% for adding non-formatted text to include source-code
+\usepackage{listings}
+\lstset{language=Python,basicstyle=\footnotesize}
+% z.B.:
+% \lstinputlisting{source_filename.py}
+% \lstinputlisting[lanugage=Python, firstline=37, lastline=45]{source_filename.py}
+%
+% oder
+%
+% \begin{lstlisting}[frame=single]
+% CODE HERE
+%\end{lstlisting}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{wasysym}
+
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage[nocheck]{fancyhdr}
+\usepackage{lastpage}
+
+\usepackage{kantlipsum}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+% packages end
+%###############################################################################
+
+\pretitle{% add some rules
+  \begin{center}
+    \LARGE\bfseries
+} %, make the fonts bigger, make the title (only) bold
+\posttitle{%
+  \end{center}%
+  %\vskip .75em plus .25em minus .25em% increase the vertical spacing a bit, make this particular glue stretchier
+}
+\predate{%
+  \begin{center}
+    \normalsize
+}
+\postdate{%
+  \end{center}%
+}
+
+\titleformat*{\section}{\Large\bfseries}
+\titleformat*{\subsection}{\large\bfseries}
+\titleformat*{\subsubsection}{\normalsize\bfseries}
+
+\titleformat*{\paragraph}{\Large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+%###############################################################################
+
+\pagestyle{fancy}
+\fancyhf{}
+% l=left, c=center, r=right; e=even_pagenumber, o=odd_pagenumber; h=header, f=footer
+% example: [lh] -> left header, [lof,ref] -> fotter left when odd, right when even
+%\fancyhf[lh]{}
+%\fancyhf[ch]{}
+%\fancyhf[rh]{}
+%\fancyhf[lf]{}
+\fancyhf[cf]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+%\fancyhf[rf]{}
+\renewcommand{\headrule}{} % removes horizontal header line
+
+% Fotter options for first page
+
+\fancypagestyle{firstpagestyle}{
+  \renewcommand{\thedate}{\textmd{}} % removes horizontal header line
+  \fancyhf{}
+  \fancyhf[lh]{\ttfamily M.Sc. Computer Science\\KTH Royal Institute of Technology}
+  \fancyhf[rh]{\ttfamily Period 4\\\today}
+  \fancyfoot[C]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+  \renewcommand{\headrule}{} % removes horizontal header line
+}
+%###############################################################################
+
+\newcommand\extrafootertext[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
+
+%###############################################################################
+
+\title{
+  \normalsize{DD2356 HT25 Applied}\\
+  \normalsize{GPU Programming}\\
+  \large{Assignment 1}
+}
+\author{
+  \small Paul Mayer\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{pmayer@kth.se}
+  \and
+  \small Rishi Vijayvargiya\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{rishiv@kth.se}
+}
+\date{}
+
+
+%###############################################################################
+% define Commands
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\I}{\mathbb{I}}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\renewcommand{\epsilon}{\varepsilon}
+
+%###############################################################################
+\makeatletter
+\renewcommand*{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or \dagger\or \ddagger\or
+   \mathsection\or \mathparagraph\or \|\or **\or \dagger\dagger
+   \or \ddagger\ddagger \else\@ctrerr\fi}}
+\makeatother
+%###############################################################################
+
+\begin{document}
+\maketitle
+\extrafootertext{\textsuperscript{\textdagger}Authors made equal contribution to the project}
+\thispagestyle{firstpagestyle}
+\vspace{1em}
+
+% content begin
+%
+
+\section*{Prefix}
+The code for our project can be found at this location: \url{https://github.com/paulmyr/DD2356-MethodsHPC/tree/master/4_mpi}. 
+
+\tableofcontents
+\newpage
+
+\section{Exercise 1 - Reflection on GPU Computing}
+
+\section{Exercise 2 - First CUDA Program and GPU Metrics}
+\subsection{Commented Code}
+The required comments have been placed in the appropriate places in the attached code in the file \verb|vecAddKernel.cu|
+
+\subsection{FLOPs and Reads}
+There is exactly one FLOP to compute the value of each element of the final result array. Since the final array has $N$ elements, there are a total of $N$ FLOPs for vectors of length $N$. There are 2 memory reads used to compute each element of the final array (one read each to read the value of each of the operands in the addition). Again, there are a total of $N$ elements in the final array, meaning we have $2N$ global reads. 
+
+Thus, there are \underline{$N$ FLOPs} and \underline{$2N$ global reads} in our addition kernel.
+
+\subsection{CUDA Config for $N = 512$}
+We keep a constant 1024 threads per block and aim to assign one element of the resulting array to one thread. Since there are $N = 512 < 1024$ elements involved here, we launch exactly \underline{1 thread block} and a total of \underline{1024 threads}.
+
+\subsection{Achieved Occupancy for $N = 512$}
+On the Tesla T4 on Google Colab, our kernel achieved an occupancy of \underline{$65.22\%$}. This can be seen in the \verb|colab_notebook.ipynb| file under the \verb|q2/| directory of the submitted code.
+
+\subsection{Increasing Vector Length to $N = 263149$}
+For us, our program seemed to work correctly when we increased our vector length to this number. 
+
+\subsection{CUDA Config for $N = 263149$}
+As can be seen in the \verb|ncu| output for $N = 263149$ in the \verb|colab_notebook.ipynb| file, we launch a total of \underline{257 blocks} with 1024 threads per block, giving us a total of \underline{263168 threads}. Note that there are 19 more threads than there are elements, which means that some threads do not do any work, but this is much lower than the 512 threads not doing any work for $N = 512$
+
+\subsection{Achieved Occupancy for $N = 263149$}
+This time, the achieved occupancy was \underline{90.25\%}. This can also be seen in the \verb|colab_notebook.ipynb| file, and was computed on the Tesla T4 on Google Colab.
+
+\subsection{Stacked Bar-Chart}
+Runtimes plotted in Figure \ref{fig:q2_bar} were obtained on the Tesla T4 on Google Colab. We varied grid sizes from $2^{19}$ to $2^{28}$ (inclusive). The CPU timer as described in the tutorial on Canvas was used to wrap the data-transfer (HtoD and DtoH) and kernel execution code. A python script was used to run the experiment 3 times for each vector length and then finally the average of these runs were obtained and plotted. The python script for running the experiments can be found in \verb|q2/run_experiments.py|. The runtimes plotted were those obtained from the notebook \verb|q2/colab_notebook.py|. The raw numbers for the plot in Figure \ref{fig:q2_bar} can be seen in the file \verb|q2/runtime_results.txt|.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{images/q2_bar.png}
+  \caption{Stacked Bar-Chart of Runtimes}
+  \label{fig:q2_bar}
+\end{figure}
+
+As can be seen from Figure \ref{fig:q2_bar}, most of the time from the 3 pieces of code plotted (HtoD data transfer, DtoH data transfer, and kernel execution) is spent in data transfer (HtoD + DtoH). The kernel execution time, even for vectors as big as $2^{28}$ in size, is incredibly minimal compared to the data transfer times. This indicates that our kernel is \underline{memory-bound} as opposed to compute-bound. Additionally, as expected, the amount of time spent in the data transfers increases as the vector sizes increase. The kernel execution time increases as well, but that is not very evident as it is dwarfed by the data-transfer times. 
+
+\section{Exercise 3 - 2D Dense Matrix Multiply}
+
+\section{Exercise 4 - Rodinia Benchmarks}
+
+
+
+% content end
+%###############################################################################
+
+% \printbibliography
+
+\end{document}
