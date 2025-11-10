@@ -194,7 +194,72 @@ The code for our project can be found at this location: \url{https://github.com/
 \newpage
 
 \section{Exercise 1 - Reflection on GPU Computing}
+Whereas modern CPUs are designed to reduce the latency in which computing problems are solved, often by using complex  branch prediction techniques and control flow optimisations, GPUs are designed to optimise for throughput.
+Their architectual design accomodates this difference in design goal.
 
+First, GPUs have significantly higher number of processing cores, resulting in a significantly higher theroretical number of peak FLOP/s.
+Second, GPUs contain less and simpler control logic, which follows the SIMD/SIMT model.
+The same operation can be performed on a large amount of data simulatneously, however, if the type of computation depends on the data itself (control flow oriented), GPUs can't make use of their highly parallel layout.
+Lastly, GPUs have a lot less cache (per core). They rely on more coalesced memory access patterns, whereas CPUs can work more efficient when faced with random access patterns. All of this makes computations more throughput oriented.
+
+Out of the top 10 supercomputers in the world, 9 use GPUs. The only outlier is the japanese supercomputer Fugaku which uses ARM-based A64FX processor instead.
+
+\begin{table}
+\parbox{.45\linewidth}{
+\centering
+\begin{tabular}{|l|}\hline
+  \textbf{AMD}\\\hline
+  \#1 El Capitan - AMD Instinct MI300A \\
+  \#2 Frontier - AMD Instinct MI250X   \\
+  \#6 HPC6 - AMD Instinct MI250X       \\
+  \#9 LUMI - AMD Instinct MI250X       \\\hline
+\end{tabular}
+\caption{AMD Gpus}
+}
+\hfill
+\parbox{.45\linewidth}{
+\centering
+\begin{tabular}{|l|}\hline
+  \textbf{Nvidia}\\\hline
+  \#4 JUPITER Booster - NVIDIA GH200 \\
+  \#5 Eagle - NVIDIA H100 \\
+  \#8 Alps - NVIDIA GH200 \\
+  \#10 Leonardo - NVIDIA A100 SXM4 \\\hline
+\end{tabular}
+\caption{NVidia GPUs}
+}
+\hfill\\[1em]
+\centering
+\parbox{.45\linewidth}{
+\centering
+\begin{tabular}{|l|}\hline
+  \textbf{Other}\\\hline
+  \#3 Aurora - Intel Data Center GPU Max Series\\
+  \#7 Fugaku - No GPUs\\\hline
+\end{tabular}
+\caption{Other}
+}
+\end{table}
+
+The energy efficiency is depicted in table \ref{tab:ee}. Out of the top10, the european Alps computer is the most efficient.
+\begin{table}
+  \centering
+  \begin{tabular}{|l|l|}\hline
+  \textbf{Computer}&\textbf{Energy Efficiency (GFlops/watts)}\\\hline
+  \#1 El Capitan       & 58.89 \\ 
+  \#2 Frontier         & 54.98 \\
+  \#3 Aurora           & 26.15 \\
+  \#4 JUPITER Boooster & 60.62 \\
+  \#5 Eagle            & No power consuption declared\\
+  \#6 HPC6             & 56.48 \\
+  \#7 Fugaku           & 14.78 \\
+  \#8 Alps             & 61.04 \\
+  \#9 LUMI             & 53.43 \\
+  \#10 Leonardo        & 32.19 \\\hline
+  \end{tabular}
+  \caption{Energy Eddiciency of the top 10 based on top500.org}
+  \label{tab:ee}
+\end{table}
 \section{Exercise 2 - First CUDA Program and GPU Metrics}
 \subsection{Commented Code}
 The required comments have been placed in the appropriate places in the attached code in the file \verb|vecAddKernel.cu|
