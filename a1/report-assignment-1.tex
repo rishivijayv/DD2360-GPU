@@ -188,7 +188,7 @@
 %
 
 \section*{Prefix}
-The code for our project can be found at this location: \url{https://github.com/paulmyr/DD2356-MethodsHPC/tree/master/4_mpi}. 
+The code for our project was submitted as a zip file. You can find code for the code-related questions of the assignment under \verb|q[x]/|, where \verb|x| is the question number. 
 
 \tableofcontents
 \newpage
@@ -261,6 +261,7 @@ The energy efficiency is depicted in table \ref{tab:ee}. Out of the top10, the e
   \label{tab:ee}
 \end{table}
 \section{Exercise 2 - First CUDA Program and GPU Metrics}
+\label{sec:q2}
 \subsection{Commented Code}
 The required comments have been placed in the appropriate places in the attached code in the file \verb|vecAddKernel.cu|
 
@@ -282,7 +283,7 @@ For us, our program seemed to work correctly when we increased our vector length
 As can be seen in the \verb|ncu| output for $N = 263149$ in the \verb|colab_notebook.ipynb| file, we launch a total of \underline{257 blocks} with 1024 threads per block, giving us a total of \underline{263168 threads}. Note that there are 19 more threads than there are elements, which means that some threads do not do any work, but this is much lower than the 512 threads not doing any work for $N = 512$
 
 \subsection{Achieved Occupancy for $N = 263149$}
-This time, the achieved occupancy was \underline{90.25\%}. This can also be seen in the \verb|colab_notebook.ipynb| file, and was computed on the Tesla T4 on Google Colab.
+This time, the achieved occupancy was \underline{90.25\%}. This can also be seen in the \verb|q2/colab_notebook.ipynb| file, and was computed on the Tesla T4 on Google Colab.
 
 \subsection{Stacked Bar-Chart}
 Runtimes plotted in Figure \ref{fig:q2_bar} were obtained on the Tesla T4 on Google Colab. We varied grid sizes from $2^{19}$ to $2^{28}$ (inclusive). The CPU timer as described in the tutorial on Canvas was used to wrap the data-transfer (HtoD and DtoH) and kernel execution code. A python script was used to run the experiment 3 times for each vector length and then finally the average of these runs were obtained and plotted. The python script for running the experiments can be found in \verb|q2/run_experiments.py|. The runtimes plotted were those obtained from the notebook \verb|q2/colab_notebook.py|. The raw numbers for the plot in Figure \ref{fig:q2_bar} can be seen in the file \verb|q2/runtime_results.txt|.
@@ -297,6 +298,58 @@ Runtimes plotted in Figure \ref{fig:q2_bar} were obtained on the Tesla T4 on Goo
 As can be seen from Figure \ref{fig:q2_bar}, most of the time from the 3 pieces of code plotted (HtoD data transfer, DtoH data transfer, and kernel execution) is spent in data transfer (HtoD + DtoH). The kernel execution time, even for vectors as big as $2^{28}$ in size, is incredibly minimal compared to the data transfer times. This indicates that our kernel is \underline{memory-bound} as opposed to compute-bound. Additionally, as expected, the amount of time spent in the data transfers increases as the vector sizes increase. The kernel execution time increases as well, but that is not very evident as it is dwarfed by the data-transfer times. 
 
 \section{Exercise 3 - 2D Dense Matrix Multiply}
+
+\subsection{Kernel FLOPs}
+We will use $A_r, A_c, B_r, B_c$ to denote \textit{numARows, numAColumns, numBRows, numBColumns} respectively. 
+For the matrix multiplication $A \times B$, it must be the case that $A_c = B_r$. So, we have 3 numbers: $A_r, A_c, B_c$. 
+
+To compute each element of the result matrix $C$, there are a total of $2\times A_c$ FLOPs performed. Computation of each element of $C$ requires 1 multiplication operation of the corresponding elements of $A$ and $B$, and 1 addition operation (to accumulate this product as a running total). These 2 FLOPs are thus performed a total of $A_c$ times, giving us $2A_c$ FLOPs for each element of $C$. There are a total of $A_r \times B_c$ elements in $C$, and thus a total of $2A_c \times A_rB_c$ = \underline{$2A_cA_rB_c$ FLOPs}.
+
+\subsection{Memory Reads}
+We will use the same notation as above. There are a total of $2\times A_c$ memory reads (1 read for the element of $A$ and one read for the element of $B$ -- and there are $A_c$ such products computed) to compute the product that is then accumulated in the rolling partial sum used to compute each element of $C$. This partial sum is accumulated in a temporary variable, so we do not count that as a read from \textit{global} memory. 
+
+There are a total of $A_rB_c$ elements in $C$. Thus, the total global memory reads in our kernel is: \underline{$2A_c \times A_rB_c = 2A_cA_rB_c$}. 
+
+
+\subsection{CUDA Config and Achieved Occupancy for $(127 \times 256) \times (256 \times 32)$}
+This code was executed on the Tesla T4 GPU on Google Colab. The notebook \verb|q3/colab_notebook.ipynb| contains information about this and subsequent executions and profiling. 
+For this configuration, a total of \underline{4096 threads} were launched, and a total of \underline{4 thread blocks} were created (all thread blocks were in the $x$ direction). Each thread block has 32 threads in the $x$ direction and 32 threads in the $y$ direction.
+
+The Achieved Occupancy for this configuration according to \verb|ncu| was \underline{$96.62\%$}.
+
+\subsection{Metrics for $(1024 \times 8191) \times (8191 \times 8197)$}
+For us, the program still seemed to work when we tested it using this configuration. 
+
+Profiling information and metrics for the run with this configuration can also be found in the \verb|q3/colab_notebook.ipynb| file. For this config, a total of \underline{8224 thread blocks} were created (32 in the $x$ direction, 257 in the $y$ direction) and a total of \underline{8,421,376 threads} were launched (for each thread block, there were 32 threads in the $x$ direction and 32 threads in the $y$ direction). The threads in each thread block were kept at a constant $32 \times 32$. The number of thread blocks in each direction depend on the number of rows and columns in the resulting matrix. For instance, the number of thread blocks in the $x$ direction can be computed as $(1024 + 32 - 1) / 32$ (where 32 is the number of threads). The same thing goes for the thread blocks in $y$ direction.
+
+In our kernel, each thread is responsible for one element of the resulting matrix. There are a total of $1024 \times 8197 = 8,393,728$ elements in the resultant matrix. However, the number of threads launched are $8,421,376 > 8,393,728$. So, only \underline{$8,393,728$ threads} actually perform the computation in our kernel.
+
+According to \verb|ncu| on Google Colab, we see an achieved occupancy of \underline{$98.23\%$}. 
+
+\subsection{Stacked Bar Chart Using Doubles}
+\label{sec:q3_stacked_bar_double}
+The timings plotted were obtained on the Tesla T4 on Google Colab. We ran the matrix multiplication 3 times for each of these matrix sizes, and then plotted the average runtimes for each of the operations we were tracking. In the graph, the labels on the $x$-axis are of the format: $(A_r, A_c, B_r, B_c)$, all separated by spaces. The python script which simulates the experiment is \verb|q3/run_experiments.py| and the script used to plot the resulting runtimes is \verb|q3/plot.py|. The colab notebook in the \verb|q3/| directory contains the execution of the runs that were plotted, and the raw runtimes for this plot can be found in the \verb|q3/runtime_results_vecMatMultiply.txt| file. 
+
+Using \verb|double| as the data type for the operands and the final resulting matrix, we observe the stacked bar chart in Figure \ref{fig:q3_bar_double}. We see that as the size of the matrix increases, the corresponding times for each of the operations tracked (HtoD, DtoH, and kernel execution) also seems to increase. However, the proportion of time allocated to the execution of the kernel seems to be a lot more when compared to the data transfer times in either direction. This indicates to us that this computation in the kernel seems to be more \underline{compute bound} than memory bound. Additionally, comparing this to the stacked bar chart from Figure \ref{fig:q2_bar}, we also see a stark difference in the kernel execution times. This is likely because of the fact that matrix multiplication involves a lot more FLOPs when compared to simple vector addition. Note that the DtoH transfer times seem to be the same for all the runs plotted because the resulting matrix in all cases has the same dimensions ($1200 \times 9000$).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{images/q3_bar_double.png}
+  \caption{Stacked Bar-Chart of Runtimes (using \textit{double})}
+  \label{fig:q3_bar_double}
+\end{figure}
+
+\subsection{Stacked Bar Chart Using Float}
+The setup for this experiment was exactly the same as for Section \ref{sec:q3_stacked_bar_double}, except we replaced all \verb|double| data-types of operands and the resulting matrix with \verb|float|. The raw runtimes plotted for this plot can be found in \verb|q3/runtime_results_vecMatMultiplyFloat.txt| file. 
+
+Using \verb|float| as the data type for the operands and the final result, we observe the stacked bar chart in Figure \ref{fig:q3_bar_float}. This seems to follow a similar trend to the chart in Figure \ref{fig:q3_bar_double} -- where increasing the problem size seems to increase the transfer times and the kernel executions. However, the overall execution for each of the 3 tracked components seems to be shorter when compared to the corresponding measurements when using \verb|double|. This is likely because a \verb|float| has lower precision than \verb|double| and is thus more faster to compute with and to transfer from device to host (and vice-versa). The proportion of time spent in kernel execution is still considerably large though, especially compared to vector-addition which was examined in Section \ref{sec:q2}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{images/q3_bar_float.png}
+  \caption{Stacked Bar-Chart of Runtimes (using \textit{float})}
+  \label{fig:q3_bar_float}
+\end{figure}
 
 \section{Exercise 4 - Rodinia Benchmarks}
 
