@@ -388,7 +388,11 @@ We ran the Cuda version with the following configuration: \verb|./lavaMD -boxes1
 For \verb|hotspot3D|, there is an approx \underline{500x speedup} if we only consider kernel execution time, and an approx \underline{270x speedup} if we consider kernel execution and data transfer times in the CUDA execution compared to the OpenMP execution.
 For \verb|lavaMD|, there is an approx \underline{24x speedup} if we only consider kernel execution time, an approx \underline{21x speedup} if we consider data transfers between host and device and kernel execution time, and an approx \underline{7x speedup} if we consider the total GPU execution time including GPU initialization and mallocs and frees.
 
-\todo{Give a reason for this speedup -- say that CPU parallelism is very different from GPU parallelism as }
+Thus in all cases, not matter what execution time is considered for the GPU, there is a \underline{very noticeable speedup} when the same problem size is executed on the GPU as opposed to on the CPU. The main reason for this is likely the fact that GPUs have a lot more simple cores that are able to handle large computations with a lot more light-weight threads as opposed to the CPU, where the cores are a lot more powerful and complex.
+
+Thus, while OpenMP offers us parallelism on the CPU, the threads are only truly able to utilize a few very powerful, specialized cores. On the other hand, GPU parallelism through CUDA is able to leverage possibly thousands of light-weight cores that specialize in arithmetic and are thus able to offer a much higher degree of parallelism, leading to faster runtimes. 
+
+\todo{Double check this reasoning. Do we need to include any code for this region? Probably not since we did not write it?}
 
 % content end
 %###############################################################################
