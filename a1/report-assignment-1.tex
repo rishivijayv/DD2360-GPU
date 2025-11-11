@@ -392,7 +392,9 @@ Thus in all cases, not matter what execution time is considered for the GPU, the
 
 Thus, while OpenMP offers us parallelism on the CPU, the threads are only truly able to utilize a few very powerful, specialized cores. On the other hand, GPU parallelism through CUDA is able to leverage possibly thousands of light-weight cores that specialize in arithmetic and are thus able to offer a much higher degree of parallelism, leading to faster runtimes. 
 
-\todo{Double check this reasoning. Do we need to include any code for this region? Probably not since we did not write it?}
+We performed this profiling on the GPU cluster offered by KTH, which runs the NVIDIA H100 80GB HBM3 GPU (as suggested by the \verb|nvidia-smi -q| command). According to the \href{https://www.techpowerup.com/gpu-specs/h100-sxm5-80-gb.c3900}{product specifications}, there are 16896 GPU cores available on the GPU. Additionally, according to the information from \verb|lscpu|, there are 224 CPU cores that can be used. So, there are $16896 / 224 = ~75$x more GPU cores when compared to the CPU cores. So, one might theoretically expect to see a 75x speed-up in the best case. 
+
+We see that for \verb|hotspot3D|, we get much better speed-ups than 75x in all cases, whereas for \verb|lavaMD|, we get less than 75x speedups. This might indicate a few things. Firstly, this re-affirms that GPU cores are different from CPU cores and thus a 1-1 comparison might not yield accurate results. GPU cores are built for throughput oriented architecture and have specialized arithmetic units that greatly outnumber those present on the CPU. Thus, each of the GPU core is likely able to perform a lot more computation compared to the CPU counterpart, which would explain why there is a much higher than a simple 75x speedup for \verb|hostspot3D|. Secondly, the code for \verb|hotspot3D| might be much better suited for GPU optimization, which could explain why while there is still a speedup for \verb|lavaMD|, it is not as high as for \verb|hostpost3D|. 
 
 % content end
 %###############################################################################
