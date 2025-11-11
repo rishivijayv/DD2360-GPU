@@ -352,8 +352,43 @@ Using \verb|float| as the data type for the operands and the final result, we ob
 \end{figure}
 
 \section{Exercise 4 - Rodinia Benchmarks}
+We used the \verb|hotspot3D| and the \verb|lavaMD|.
 
+\subsection{Changes to Makefile}
+\subsubsection{hotspot3D}
+For \verb|hotspot3D|, the OpenMP Makefile was fine as is. For Cuda, the \verb|include| statement in the Makefile had to be changed to refer to the correct path for \verb|make.config|. The original line was: 
+\begin{verbatim}
+include ~/rodinia_3.0/common/make.config
+\end{verbatim}
+which was then changed to 
+\begin{verbatim}
+include ~/DD2360-HT25/rodinia_3.1/common/make.config
+\end{verbatim}
 
+\subsubsection{lavaMD}
+For \verb|lavaMD|, the OpenMP Makefile was fine as is. For Cuda, the makefile had to change the \verb|-arch| flag value from \verb|sm_13| to \verb|sm_75|. 
+
+\subsection{Input Problems and Execution Times}
+Note that both these benchmarks came with their own timing prompt that was output as part of the program execution. Thus, no new timing blocks or code was added by us.
+\subsubsection{hotspot3D}
+We ran the OpenMP version with the following configuration (using the $512 \times 8$ input data):
+\begin{verbatim}
+./3D 512 8 100 ../../data/hotspot3D/power_512x8 ../../data/hotspot3D/temp_512x8 output.out
+\end{verbatim}
+With this, we got a total execution time of around \underline{14.511 seconds}. 
+
+We ran the Cuda version with the exact same configuration. On doing so, we got a runtime of around \underline{0.028 seconds} for the kernel execution, and a runtime of around \underline{0.054 seconds} for the HtoD transfer + kernel execution + DtoH transfer. Note that the default benchmark code only timed the kernel execution, but we changed the timing around a little bit to get the data transfer times as well.
+
+\subsubsection{lavaMD}
+We ran the OpenMP version with the following configuration: \verb|./lavaMD -cores 8 -boxes1d 20|. With this, we got a total execution time of around \underline{1.982 seconds}. Note that the size of the input problem here is 20, as the \verb|-cores| argument is used to determine the number of threads launched and used by OpenMP.
+
+We ran the Cuda version with the following configuration: \verb|./lavaMD -boxes1d 20|. With this, we got a total execution time of around \underline{0.093 seconds} for the HtoD transfer + kernel execution + DtoH transfer timing. For only kernel execution, we get a runtime of about \underline{0.084 seconds}. For the total runtime -- which includes a GPU initialization using (the now deprecated) \verb|cudaThreadSynchronize| and the mallocs and frees for memory, we get a total runtime of about \underline{0.287 seconds}. Note that here, we maintain the same input problem size as controlled by the \verb|-boxes1d| parameter. 
+
+\subsection{Is there a Speedup in GPU?}
+For \verb|hotspot3D|, there is an approx \underline{500x speedup} if we only consider kernel execution time, and an approx \underline{270x speedup} if we consider kernel execution and data transfer times in the CUDA execution compared to the OpenMP execution.
+For \verb|lavaMD|, there is an approx \underline{24x speedup} if we only consider kernel execution time, an approx \underline{21x speedup} if we consider data transfers between host and device and kernel execution time, and an approx \underline{7x speedup} if we consider the total GPU execution time including GPU initialization and mallocs and frees.
+
+\todo{Give a reason for this speedup -- say that CPU parallelism is very different from GPU parallelism as }
 
 % content end
 %###############################################################################
