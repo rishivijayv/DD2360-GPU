@@ -1,0 +1,378 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,
+            bindingoffset=0.2in,
+            left=1in,
+            right=1in,
+            top=1in,
+            bottom=1in,
+            footskip=.25in]{geometry}
+
+%###############################################################################
+
+%\input{~/layout/global_layout}
+
+
+%###############################################################################
+
+% packages begin
+
+\usepackage[
+  backend=biber,
+  sortcites=true,
+  style=alphabetic,
+  eprint=true,
+  backref=true
+]{biblatex}
+\addbibresource{bibliographie.bib}
+\usepackage[acronym]{glossaries}
+\usepackage{multirow}
+\usepackage{euscript}[mathcal]
+% e.g. \mathcal{A} for fancy letters in mathmode
+\usepackage{amsmath,amssymb,amstext,amsthm}
+
+\usepackage{mdframed}
+\newmdtheoremenv[nobreak=true]{problem}{Problem}[subsection]
+\newmdtheoremenv[nobreak=true]{claim}{Claim}[subsection]
+\newtheorem{definition}{Definition}[subsection]
+\newtheorem{lemma}{Lemma}[claim]
+\newtheorem{plemma}{Lemma}[problem]
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\usepackage{enumerate}
+\usepackage[pdftex]{graphicx}
+\usepackage{subcaption}
+% 'draft' für schnelleres rendern mitübergeben -> [pdftex, draft]
+% dadruch wird nicht das bild mitgerendered, sondern nur ein kasten mit bildname -> schont ressourcen
+
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,matrix,positioning,shapes}
+
+% for adding non-formatted text to include source-code
+\usepackage{listings}
+\lstset{language=Python,basicstyle=\footnotesize}
+% z.B.:
+% \lstinputlisting{source_filename.py}
+% \lstinputlisting[lanugage=Python, firstline=37, lastline=45]{source_filename.py}
+%
+% oder
+%
+% \begin{lstlisting}[frame=single]
+% CODE HERE
+%\end{lstlisting}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{wasysym}
+
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage[nocheck]{fancyhdr}
+\usepackage{lastpage}
+
+\usepackage{kantlipsum}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+% packages end
+%###############################################################################
+
+\pretitle{% add some rules
+  \begin{center}
+    \LARGE\bfseries
+} %, make the fonts bigger, make the title (only) bold
+\posttitle{%
+  \end{center}%
+  %\vskip .75em plus .25em minus .25em% increase the vertical spacing a bit, make this particular glue stretchier
+}
+\predate{%
+  \begin{center}
+    \normalsize
+}
+\postdate{%
+  \end{center}%
+}
+
+\titleformat*{\section}{\Large\bfseries}
+\titleformat*{\subsection}{\large\bfseries}
+\titleformat*{\subsubsection}{\normalsize\bfseries}
+
+\titleformat*{\paragraph}{\Large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+%###############################################################################
+
+\pagestyle{fancy}
+\fancyhf{}
+% l=left, c=center, r=right; e=even_pagenumber, o=odd_pagenumber; h=header, f=footer
+% example: [lh] -> left header, [lof,ref] -> fotter left when odd, right when even
+%\fancyhf[lh]{}
+%\fancyhf[ch]{}
+%\fancyhf[rh]{}
+%\fancyhf[lf]{}
+\fancyhf[cf]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+%\fancyhf[rf]{}
+\renewcommand{\headrule}{} % removes horizontal header line
+
+% Fotter options for first page
+
+\fancypagestyle{firstpagestyle}{
+  \renewcommand{\thedate}{\textmd{}} % removes horizontal header line
+  \fancyhf{}
+  \fancyhf[lh]{\ttfamily M.Sc. Computer Science\\KTH Royal Institute of Technology}
+  \fancyhf[rh]{\ttfamily Period 2\\\today}
+  \fancyfoot[C]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+  \renewcommand{\headrule}{} % removes horizontal header line
+}
+%###############################################################################
+
+\newcommand\extrafootertext[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
+
+%###############################################################################
+
+\title{
+  \normalsize{DD2356 HT25 Applied}\\
+  \normalsize{GPU Programming}\\
+  \large{Assignment 2}
+}
+\author{
+  \small Paul Mayer\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{pmayer@kth.se}
+  \and
+  \small Rishi Vijayvargiya\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{rishiv@kth.se}
+}
+\date{}
+
+
+%###############################################################################
+% define Commands
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\I}{\mathbb{I}}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\renewcommand{\epsilon}{\varepsilon}
+
+%###############################################################################
+\makeatletter
+\renewcommand*{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or \dagger\or \ddagger\or
+   \mathsection\or \mathparagraph\or \|\or **\or \dagger\dagger
+   \or \ddagger\ddagger \else\@ctrerr\fi}}
+\makeatother
+%###############################################################################
+
+\begin{document}
+\maketitle
+\extrafootertext{\textsuperscript{\textdagger}Authors made equal contribution to the project}
+\thispagestyle{firstpagestyle}
+\vspace{1em}
+
+% content begin
+%
+
+\section*{Prefix}
+The code for our project was submitted as a zip file. You can find code for the code-related questions of the assignment under \verb|q[x]/|, where \verb|x| is the question number. 
+
+\tableofcontents
+\newpage
+
+\section{Exercise 1 -- Shared Memory and Atomics}
+We will continuously refer to the Google Colab Notebook where we ran these experiments for this question using the Tesla T4 GPU. This notebook can be found under \verb|q1/colab.ipynb| in the submitted code. 
+
+\subsection*{General Implementation}
+Our GPU implementation is divided in to 2 functions: \verb|histogram_kernel| and \verb|convert_kernel|. Both kernels have the same threads per block: 1024, but differ in the number of thread-blocks. The former divides the input array into blocks, while the latter divides the number of bins into separate blocks. Thus, there are at least as many threads as input elements for \verb|histogram_kernel|, and there are \verb|NUM_BINS| threads for \verb|convert_kernel|.
+
+The general idea for the \verb|histogram_kernel| is that each thread is responsible for one element in the input array. Similarly, for the \verb|convert_kernel|, each thread is responsible for the saturation of exactly one bin. We now answer the questions in the report.
+
+\subsection{Q1: Optimizations Attempted}
+\label{sec:q1_q1}
+We attempted 3 optimizations, which can be found in functions \verb|histogram_kernel_v{x}| where \verb|x| ranges from 0, 1, and 2 in the \verb|q1/histogram.cu| file. We kept the \verb|convert_kernel| implementation the same. We will refer to each of these as optimizations 0, 1, and 2 respectively. 
+
+When reporting the runtime results of these optimizations, we compare it to the CPU and to the other optimizations using input length $102,400,000$. All the timings mentioned below can be found in the Google Colab Notebook. While the Notebook includes h-to-d and d-to-h device transfer runtimes, we only refer to the kernel execution runtimes in this report when comparing the performance as that is what changes on switching kernel implementations. Note that the kernel execution times also include the execution time of the \verb|convert_kernel|. However, these execution times seem to be multiple order of magnitudes smaller than the execution time for \verb|histogram_kernel| (microsecond vs millisecond according to \verb|ncu| output), and thus are left in since they do not dominate.
+
+\subsubsection{Optimization 0: Only Atomics}
+Each thread is responsible for correctly allocating one element of the input array to its associated bin. This uses only the \verb|atomicAdd| function of CUDA.
+ From just a timing perspective, this performed a lot better compared to the CPU version: $\sim12$ms on the GPU compared to  $\sim205$ms on the CPU for a uniform distribution. The times are in a similar range for a normal distribution. This makes it look like the increased contention added by the \verb|atomicAdd| is overruled by the benefit of simply parallelizing the computation on the GPU. 
+
+\subsubsection{Optimization 1: Shared Mem + Atomics, One Thread Overworked}
+We now use shared memory to keep a \textit{local bin} copy where we first create a local histogram per block, and then add up the local histograms of each block to the global histogram. In each block, the thread with index 0 initializes the local bin copy to 0. After initialization, each thread assigns the input element it is responsible for to the correct local bin using \verb|atomicAdd|. After all threads have done this, the thread with index 0 then adds each local bin's total to the corresponding global bin using \verb|atomicAdd|. The initialization and the \verb|atomicAdd| to the global bin are followed by a call to \verb|__syncthreads()|.
+
+From a timing perspective, this optimization performs better than the CPU version: taking about $\sim154ms$ for a uniform distribution. However, it has the worst runtime compared to the other GPU optimizations. This is the case for both uniform and normal distributions. 
+
+One likely reason for this could be that one thread being responsible for the initialization of 4096 bins causes the other threads to sit idle and wait because of the \verb|__syncthreads()| call. With a greater number of elements, there are a greater number of blocks and thus more threads waiting in this idle state. Similarly, only one thread accumulates the local bin counts to the global bins, which could further cause an imbalance across thread blocks because of the \verb|cudaDeviceSynchronize| call after the kernel execution -- where we wait for these overworked threads to finish their work.
+
+\subsubsection{Optimization 2: Shared Mem + Atomics, Equal Thread Work}
+This is very similar to Optimization 1, but differs in how we initialize the shared-memory local bins and accumulate their results. Each block has 1024 threads, and we have a constant 4096 bins. Thus, each thread is responsible for initializing and accumulating the results of 4 local bins. Thread 0 initializes and accumulates local bin 0, 1024, 2048, and 3072. Thread 1023 does the same for local bin 1023, 2047, 3071, and 4095. This way, all threads do a small amount of work and hopefully do not sit idle for long. We do some additional housekeeping around the atomic addition -- where we check that the global thread index is one for an element that actually exists. This is required because we want all threads to participate in the local bin initialization and accumulation, regardless of whether they have an input element they are responsible for. 
+
+From a timing perspective, this optimization has the best performance: taking about $\sim 8ms$ for a uniform distribution. It also has the best performance for a normal distribution. 
+
+\subsection{Q2: The Chosen Optimization}
+From Section \ref{sec:q1_q1}, we believed that Optimization 2 should be the way to go because it had the best performance compared to the other optimization attempts. We further wanted to confirm this using \verb|ncu| profiling to compare Optimization 2 against the other optimizations. This table summarizes some of noteworthy results for $N = 102,400,000$ elements. This can be found in raw form in the Google Colab Notebook. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|c|c|c|}
+\hline
+\textbf{Distribution} 
+    & \textbf{Optimization} 
+    & \textbf{Duration} 
+    & \textbf{Compute Throughput} 
+    & \textbf{Achieved Occupancy} \\
+\hline
+\hline
+
+\multirow{3}{*}{Uniform}
+    & Opt 0 & 12.07ms & 11.03\% & 57.48\% \\ \cline{2-5}
+    & Opt 1 & 153.5ms & 35.46\% & 16.24\% \\ \cline{2-5}
+    & Opt 2 & 8.17ms & 50.2\% &  88.63\% \\
+\hline
+\hline
+
+\multirow{3}{*}{Normal}
+    & Opt 0 & 12.95ms & 9.53\% & 56.87\% \\ \cline{2-5}
+    & Opt 1 & 153.5ms & 35.46\% & 16.24\% \\ \cline{2-5}
+    & Opt 2 & 8.17ms & 50.26\% & 88.66\% \\
+\hline
+
+\end{tabular}
+\caption{Some \textit{ncu} Results Optimizations 0-2 of \textit{histogram\_kernel}}
+\label{table:q1_q2}
+\end{table}
+
+Because of its lower duration, higher Compute Throughput, and high Achieved Occupancy -- we felt that our preliminary experiments were validated by \verb|ncu| and thus it was decided that Optimization 2 would be the one we would chose to go with. Note that our focus was only on \verb|histogram_kernel|, and the implementation of \verb|convert_kernel| was kept the same throughout. The following questions will be answered with Opt 2 being the implementation of \verb|histogram_kernel|.
+
+\subsection{Q3: Global Memory Reads and Writes}
+\begin{itemize}
+\item \underline{In \textit{histogram\_kernel}}: The only time global memory is read from and written to is the \verb|atomicAdd| function, where we accumulate the local bins. Each thread performs 4 atomic additions to the global bin, and there are 1024 threads per block, which gives us 4096 global reads and writes per thread block (we assume \verb|atomicAdd| has 1 global read and 1 global write that are performed atomically). When there are $N$ input elements, there are $\lceil\frac{N}{1024}\rceil$thread blocks. So, in \verb|histogram_kernel|, there are $4096 \times \lceil\frac{N}{1024}\rceil$ global reads and writes in \verb|histogram_kernel| in one run.
+
+\item \underline{In \textit{convert\_kernel}}: Each thread is associated with one global bin, and reads the value of the global bin to check if it is saturated and optionally overwrites the bin value with 127 if it is saturated. Thus, there are exactly 4096 reads and at most 4096 writes. Note that we cannot get the exact number of writes here since we do not know the input distribution. 
+\end{itemize}
+
+So, there are exactly $4096 \times (\lceil\frac{N}{1024}\rceil + 1)$ global reads in one run, and at most $4096 \times (\lceil\frac{N}{1024}\rceil + 1)$ global writes.
+
+\subsection{Q4: Atomic Operations in One Run}
+\begin{itemize}
+
+\item \underline{In \textit{histogram\_kernel}}: Each thread does 4 atomic additions to add the accumulate the local bin to the global bin, and there are 1024 threads in one block. So, there are 4096 atomic operations per block to accumulate the local bin to the global bin. As stated earlier, there are $\lceil\frac{N}{1024}\rceil$ thread blocks. So, there are $4096 \times \lceil\frac{N}{1024}\rceil$ such atomic operations in \verb|histogram_kernel|. Additionally, each input element is the responsibility of one thread, where this thread atomically increments the thread block's local bin counter. So, there are a total of $N$ such atomic operations in \verb|histogram_kernel|. So, in total, there are $4096 \times \lceil\frac{N}{1024}\rceil + N$ atomic operations in \verb|histogram_kernel|
+
+\item \underline{In \textit{convert\_kernel}}: There are no atomic operations in \verb|convert_kernel| (we assume by atomic operations for the question explicitly refer to those of the form \verb|atomicXXX| in the CUDA library)
+
+\end{itemize}
+
+So, there are a total of $4096 \times \lceil\frac{N}{1024}\rceil + N$ atomic operations in one run.
+
+\subsection{Q5: Shared Memory Usage}
+
+\begin{itemize}
+\item \underline{In \textit{histogram\_kernel}}: Each block as an \verb|unsigned int| array of size 4096 to represent local bins. We assume \verb|sizeof(unsigned int)| is 4 bytes. So, each block uses $4096 \times 4 = 16384$ bytes of shared memory, or  16.384kB. For an input of size $N$, there are $\lceil\frac{N}{1024}\rceil$  blocks. Thus, in total, there is around $(16.384 \times \lceil\frac{N}{1024}\rceil)$ kB of shared memory used by \verb|histogram_kernel|. 
+
+\item  \underline{In \textit{convert\_kernel}}: There is no shared memory used by \verb|convert_kernel|. 
+\end{itemize}
+
+Thus, in total around $(16.384 \times \lceil\frac{N}{1024}\rceil)$ kB of shared memory is used in one run.
+
+\subsection{Q6: Impact of Value Distribution on Collision \& Contention}
+We refer to the impact of distributions on \verb|histogram_kernel| only, as we do not think the amount of work \verb|convert_kernel| does changes from one distribution to the other (additionally, there are no atomic operations being used there). 
+
+We would expect higher contention and collision in the normal distribution as opposed to a uniform distribution for the same number of input elements. This is because the distribution of values would be more concentrated at the bins near the mean (around bin 2047 in our case) and would decrease as we go away from the mean. In contrast, for a uniform distribution, we would expect an equal spread across all bins, which would mean that the contention for all bins would be roughly similar instead of being concentrated on a few. 
+
+For a naive implementation which relies only on global memory (in our case, Opt 0), this would mean that a greater number of threads would be vying to atomically update these high frequency bins near the mean in a normally distributed set of input values. This would in turn cause worse runtimes as threads have to wait to make the updates for their elements. This is visible in Table \ref{table:q1_q2}, where for Opt 0, the runtimes and performance for a normal distribution are slightly worse than those for the uniform distribution for the same $N$. 
+
+However, for implementations using shared memory and local bins, the contention is much less as fewer threads will be vying for the same bin (since there are at most 1024 threads in one block) even if the distribution is not uniform. Additionally, with the quicker access to local memory, the effects of contention are also likely to be less noticeable. The global memory accesses in Opt 1 and Opt 2 don't depend on the distribution, as they simply accumulate the values in local bins and this step would be the same for both uniform and normal input data sets. Thus, with shared memory, we would expect the distribution to have almost negligible impact on the performance. This is exactly what we see in Table \ref{table:q1_q2}, where for Opt 1 and Opt 2, the performance across distributions is almost identical.
+
+\subsection{Q7: Histogram Plots}
+For all the charts and all the profiling, we used 1024 threads per block. The total number of blocks for \verb|histogram_kernel| were $\lceil \frac{N}{1024} \rceil$ where $N$ is the number of input elements. For \verb|convert_kernel|, the number of blocks was $4096 / 1024 = 4$. 
+
+The plots can be seen in Figure \ref{fig:q1_normal} and Figure \ref{fig:q1_uniform}. Note that these are the results after making sure that all bins saturate at 127. The raw \verb|.txt| files which contain the data plotted in the histogram can be found in the \verb|q1/| directory. The first lines of these files contain the number of bins (4096 in our case) and the subsequent lines contain the count for each bin. The result files were generated using \verb|generate_result.py| and the plots were generated using \verb|plot_histogram.py|. The Google Colab Notebook has the run which was used to generate the result text files. 
+
+ \begin{figure}
+\centering
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/normal_1024.png}
+    \caption{With 1024 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/normal_10240.png}
+    \caption{With 10240 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/normal_102400.png}
+    \caption{With 102400 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/normal_1024000.png}
+    \caption{With 1024000 Elements}
+\end{subfigure}
+        
+ \label{fig:q1_normal}
+\caption{Histogram Plots for Normal Distribution}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/uniform_1024.png}
+    \caption{With 1024 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/uniform_10240.png}
+    \caption{With 10240 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/uniform_102400.png}
+    \caption{With 102400 Elements}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q1/uniform_1024000.png}
+    \caption{With 1024000 Elements}
+\end{subfigure}
+        
+\caption{Histogram Plots for Uniform Distribution}
+\label{fig:q1_uniform}
+\end{figure}
+
+\subsection{Q8: Profiling for $N = 1024$ and Additional Optimization}
+The Google Colab Notebook contains the detailed information about the \verb|ncu| run for both uniform and normal distribution when $N = 1024$. 
+\begin{itemize}
+\item \underline{For Normal Distribution}: The Shared Memory Configuration Size was 32.77 kB and Achieved Occupancy was 91.35\% for \verb|histogram_kernel|. For \verb|convert_kernel|, Shared Memory Configuration Size was the same and Achieved Occupancy was 95.54\%.
+
+\item \underline{For Uniform Distribution}: The Shared Memory Configuration Size was 32.77 kB and Achieved Occupancy was 92.77\% for \verb|histogram_kernel|. For \verb|convert_kernel|, Shared Memory Configuration Size was the same and Achieved Occupancy was 98.79\%.
+\end{itemize}
+
+The next optimization we would have liked to try was to change the bins that each thread in a block in \verb|histogram_kernel| is responsible for initializing and accumulating. Currently, we jump 1024 bins to get to the next bin that the thread is responsible for. Instead, we would like to experiment what would happen if we make each thread responsible for 4 \underline{consecutive} bin. Thus, instead of thread 0 being responsible for bin 0, 1024, 2048, and 3072 -- it would be responsible for bin 0, 1, 2, 3. This will reveal some information about access patterns on GPUs and which access patterns are better for shared memory.
+
+\section{Exercise 2 -- Reduction}
+
+\section{Exercise 3 -- Tiled Matrix Multiplication}
+
+
+
+% content end
+%###############################################################################
+
+% \printbibliography
+
+\end{document}
