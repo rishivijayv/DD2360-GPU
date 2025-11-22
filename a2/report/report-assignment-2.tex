@@ -477,7 +477,7 @@ The output screenshot for the given configuration can be seen in Figure \ref{fig
     \centering
     \includegraphics[width=0.5\linewidth]{../images/q3/part3.png}
     \caption{Results for $A = (513 \times 8192)$ and $B = (8192 \times 1023)$ on H100}
-    \label{fig:ex3_part2}
+    \label{fig:ex3_part3}
 \end{figure}
 
 The absolute runtimes here are a bit larger, likely because of the increased dimensions. However, they seem to follow the same trend: the CUDA naive gemm kernel is a lot faster than the CPU implementation, but the tiled implementations are a lot faster too, decreasing the runtime as the tile sizes increase. Thus, a similar analysis as was performed for the previous configuration applies here. 
