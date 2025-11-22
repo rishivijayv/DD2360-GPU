@@ -445,17 +445,115 @@ We believe that this might be because of the Tesla T4 GPU is quite old compared 
 Thus, for runtimes, we defer to using the H100 GPU available on the school's GPU cluster. However, for profiling, we will use the results for the Google Colab Tesla T4 GPU (since profiling tools are not available on the school's GPU cluster). The output for the runs requested in Q2 and Q3 on Google Colab can be found in the \verb|q3/colab.ipynb| file. For the Graph in Q5, we focus on the graph for the school cluster's GPU. The graph for the runtimes obtained on Google Colab can be found in the Appendix section.
 
 \subsection{Q1: Tiled Global Mem Reads}
+We will refer to \verb|tileX| and \verb|tileY| as $t_x$ and $t_y$ respectively. Additionally, we will assume that $A$ as dimensions $M \times K$ and $B$ has dimensions $K \times N$. 
 
-\subsection{Q2: Output for A = B = (1024 x 1024)}\mtodo{Reformulate heading to not contain equations}
+In our implementation, we sweep through matrix $A$ in tile sizes of $t_x \times t_y$ and we sweep through the matrix $B$ in tile sizes of $t_y \times t_x$. Thus, each block of threads computes a $t_x \times t_x$ portion of the result matrix $C$, and in each implementation, we move the tiles forward by $t_y$ elements (this is explained in a bit more detail in the implementation of \verb|tiled_gemm| in the code). Thus, in each iteration of the sweep performed by a block of threads, there are $2 \times t_y \times t_x$ global memory reads. In total, there are $\frac{K}{t_y}$ such sweeps performed. Thus, there are a total of $2 \times t_y \times t_x \times \frac{K}{t_y}$ or $2Kt_x$ global reads per thread block. 
 
-\subsection{Q3: Output for A = (513 x 8192) and B = (8192 x 1023)} \mtodo{Reformulate heading to not contain equations}
+In total, our implementation creates $\frac{M}{t_y} \times \frac{N}{t_x}$ thread blocks. Thus, there are a total of $\frac{M \times N \times 2Kt_x}{t_yt_x}$ or $\frac{2MNK}{t_y}$ global memory reads performed by our \verb|tiled_gemm| implementation. In comparison to the naive matrix-multiplication, which performed $2MNK$ memory reads, there is a reduction factor of $t_y$ here, which tells us that the greater the size of the tile in the $y-$direction, the fewer the memory reads. This intuitively makes sense to us. 
+
+Note that the presence of $t_y$ is there because of our specific implementation. We could have swept through $A$ and $B$ in the opposite way to get a reduction factor of $t_x$, what is important here is that a greater tile size leads to fewer global memory reads. In practice, we have usually seen that tile sweeps are in squares, so $t_y = t_x$. This is also the case for our 3 tile choices later on in the questions.
+
+
+\subsection{Q2: Output for A = B = (1024 x 1024)}
+The output screenshot for the given configuration can be seen in Figure \ref{fig:ex3_part2}. This was obtained on H100. The output matrix result has been truncated to only show the first 5 rows and columns, but an element-wise comparison was performed with the reference result, the results of which are printed after the truncated matrices. 
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{../images/q3/part2.png}
+    \caption{Results for $A = B = (1024 \times 1024)$ on H100}
+    \label{fig:ex3_part2}
+\end{figure}
+
+The results here show that the slowest computation was the one performed on the CPU. Then, the naive CUDA implementation was around 200x faster. Subsequently, each of the tiled implementations was even faster, with the biggest tile size -- $(32 \times 32)$ -- getting the fastest runtime. Note that we are only timing the CUDA kernels here (and in subsequent runtime images/plots), and the cost of memory transform to and from the device are omitted. 
+
+This shows to us the obvious advantages of tiling and using the shared memory over the naive CUDA implementation. Additionally, this shoes that increasing the tile sizes reduces the amount of global memory reads by a greater factor, thereby reducing the effects of interacting with the slower global memory in performing the computation. 
+
+\subsection{Q3: Output for A = (513 x 8192) and B = (8192 x 1023)} 
+
+The output screenshot for the given configuration can be seen in Figure \ref{fig:ex3_part3}. This was also obtained on the H100 and follows the same output format as the previous configuration. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{../images/q3/part3.png}
+    \caption{Results for $A = (513 \times 8192)$ and $B = (8192 \times 1023)$ on H100}
+    \label{fig:ex3_part2}
+\end{figure}
+
+The absolute runtimes here are a bit larger, likely because of the increased dimensions. However, they seem to follow the same trend: the CUDA naive gemm kernel is a lot faster than the CPU implementation, but the tiled implementations are a lot faster too, decreasing the runtime as the tile sizes increase. Thus, a similar analysis as was performed for the previous configuration applies here. 
+
+One caveat here is that the difference between the CUDA naive gemm and the tiled gemms, while still non-trivial, isn't as big as was the case with square matrices that would divide evenly in to the block sizes. This could be because there are more threads in rectangular matrix multiplication which could be out of bounds when performing the computation, which could mean that threads in the same warp need to follow different paths around \verb|if...else| statements, forcing their computation to be sequential. 
 
 \subsection{Q4: Achieved Occupancy and Shared Mem Usage}
+This information was obtained on the Tesla T4 GPU on Google Colab, and can be found in raw form in the \verb|q3/colab.ipynb| file.
+\subsubsection{For A = B = (1024 x 1024)}
+\begin{itemize}
+\item \underline{For gemm}: Achieved Occupancy was \textbf{98.19\%} and Shared Memory Usage was \textbf{0 byte/block}. 
+\item \underline{For tiled\_gemm ($8 \times 8$)}: Achieved Occupancy was \textbf{98.83\%} and Dynamic Shared Memory Usage was \textbf{1.02 Kbyte/block}. 
+\item \underline{For tiled\_gemm ($16 \times 16$)}: Achieved Occupancy was \textbf{99.10\%} and Dynamic Shared Memory Usage was \textbf{4.10 Kbyte/block}. 
+\item \underline{For tiled\_gemm ($32 \times 32$)}: Achieved Occupancy was \textbf{99.98\%} and Dynamic Shared Memory Usage was \textbf{16.38 Kbyte/block}. 
+\end{itemize}
+
+\subsubsection{For A = (513 x 8192) and B = (8192 x 1023)}
+\begin{itemize}
+\item \underline{For gemm}: Achieved Occupancy was \textbf{97.43\%} and Shared Memory Usage was \textbf{0 byte/block}. 
+\item \underline{For tiled\_gemm ($8 \times 8$)}: Achieved Occupancy was \textbf{97.98\%} and Dynamic Shared Memory Usage was \textbf{1.02 Kbyte/block}. 
+\item \underline{For tiled\_gemm ($16 \times 16$)}: Achieved Occupancy was \textbf{98.32\%} and Dynamic Shared Memory Usage was \textbf{4.10 Kbyte/block}. 
+\item \underline{For tiled\_gemm ($32 \times 32$)}: Achieved Occupancy was \textbf{100\%} and Dynamic Shared Memory Usage was \textbf{16.38 Kbyte/block}. 
+\end{itemize}
 
 \subsection{Q5: Runtimes}
+\label{sec:ex3_runtimes}
+We use square matrices for multiplication, starting at $(16 \times 16)$ and going up to $(2048 \times 2048)$. The runtimes for the CPU version, the \verb|gemm| version, and the 3 \verb|tiled_gemm| version (with tile sizes of $8 \times 8$, $16 \times 16$, and $32 \times 32$ for each configuration were obtained 3 times and the average was plotted. The python script which automates this is the \verb|run_experiments.py| file in the \verb|q3/| directory. It produces a \verb|.txt| file called \verb|runtime_results.txt|. This can then be plotted using the \verb|plot.py| script, passing the name of the results file as the argument. 
+
+The results plotted here can be found in their raw form in the \verb|school_times.txt| file, and the experiment was run on the H100 GPU available on the KTH cluster. Finally, recall that we only plot the times for the CUDA kernels, and do not include memory transfer times here (D-to-H or H-to-D). 
+
+ \begin{figure}
+\centering
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q3/h100_with_cpu.png}
+    \caption{Runtimes With CPU}
+    \label{fig:q3_ex5_with_cpu}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q3/h100_no_cpu.png}
+    \caption{Runtimes Without CPU}
+    \label{fig:q3_ex5_without_cpu}
+\end{subfigure}
+        
+\caption{Log-Log Plot of Different matmul Implementations on H100}
+\end{figure}
+
+We went with a log-log line graph instead of the bar-graph because the CPU runtimes were incredibly high and thus dwarfed the GPU kernel runtimes. Figure \ref{fig:q3_ex5_with_cpu} includes the runtime for the CPU, where it can be seen that it is faster than the naive CUDA kernel for smaller matrix sizes. However, as the matrix sizes increase, there is a much faster increase in the runtime of the CPU version, as opposed to the naive CUDA kernel \verb|gemm|, which remains somewhat constant in its runtime with an increase in the matrix dimensions. This could be because the overhead of launching the CUDA kernel and managing the threads dominates as opposed to the computation to be performed.
+
+We also see that all the \verb|tiled_gemm| versions with different tile sizes always perform better than the naive CUDA \verb|gemm| implementation. This is likely because the advantages of using shared memory and lower calls to global memory. Additionally, for larger matrices, it seems to be the case that the higher tile sizes perform better than smaller tile sizes. This is because larger tiles read more data in to shared memory, which further decreases the amount of repeated global memory calls that need to be made. 
+
+One interesting observation here is the rate of growth of the runtimes for the naive \verb|gemm| kernel and the tiled \verb|tiled_gemm| kerels. Figure \ref{fig:q3_ex5_without_cpu} shows the runtimes of just the different CUDA kernels. For \verb|gemm|, the rate of growth is incredibly slow -- being almost non-present for the first few matrix sizes, and then seeming to increase linearly near the last few bigger matrix sizes. However, the rate of growth of all the \verb|tiled_gemm| versions seems to follow a similar pattern to the CPU implementation albeit to a lesser extent. This could be because of the large number of global-memory calls present in the naive \verb|gemm| kernel -- with an increase in the number of elements, we also have an increase in the number of threads launched, but each thread accesses global memory a lot more frequently, which would mean that the runtime here is more dependent on the time it takes to access global memory than the actual computation being performed. However, in the tiled versions, the reduction of the global memory access means that the runtimes are more dependent on the amount of compute to be performed, which could explain the reason for the difference in the rate of runtime growth. 
+
 
 \section{Appendix}
+\subsection{Exercise 3 -- Runtimes from Google Colab}
+Figure \ref{fig:appendix_t4_runtimes} shows the log-log line graphs of the runtimes obtained from the experiment in Section \ref{sec:ex3_runtimes} obtained on Google Colab on the Tesla T4 GPUs. As explained at the beginning of the report for Exercise 3, the different architectures of the H100 and the Tesla T4 GPU give rise to very different looking plots. The runtimes of the tiled versions and the naive CUDA version are a lot closer to each other for the intermediate-big matrix sizes than was the case on the H100 GPU. The biggest tile size -- $32 \times 32$ -- which saw the fastest runtimes on the H100 here does not start out-performing the other implementations until we get to the largest matrix multiplication. 
 
+One of the reasons for this, among others, could be the fact that the lower L1/Shared-Memory space on the Tesla T4 GPU mean that if greater shared memory is used, then a greater number of cache misses occur, which could further inflate the runtime in other ways. To make up for these greater number of cache misses because of greater shared-memory usage thanks to greater tile sizes, perhaps a much greater number of computations need to be performed -- which seems to start being the case with $2048 \times 2048$ matrix multiplication. If we had Google Colab credits, we would have liked to investigate what happened on even bigger matrix sizes, but we did not want to run out of free usage time while there are still 2 assignments and a project left in the course. 
+\begin{figure}
+\centering
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q3/t4_with_cpu.png}
+    \caption{Runtimes With CPU}
+    \label{fig:appendix_ex5_with_cpu}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[width=\textwidth]{../images/q3/t4_no_cpu.png}
+    \caption{Runtimes Without CPU}
+    \label{fig:appendix_ex5_without_cpu}
+\end{subfigure}
+        
+\caption{Log-Log Plot of Different matmul Implementations on Tesla T4}
+\label{fig:appendix_t4_runtimes}
+\end{figure}
 
 % content end
 %###############################################################################
