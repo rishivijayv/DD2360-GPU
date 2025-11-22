@@ -170,6 +170,12 @@
 
 \renewcommand{\epsilon}{\varepsilon}
 
+
+\newcommand{\itodo}[2][yellow]{\todo[inline, color=#1!40]{#2}}
+\newcommand{\mtodo}[2][orange]{\todo[color=#1!40]{#2}}
+
+
+
 %###############################################################################
 \makeatletter
 \renewcommand*{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or \dagger\or \ddagger\or
@@ -228,7 +234,7 @@ From Section \ref{sec:q1_q1}, we believed that Optimization 2 should be the way 
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|l|l|c|c|c|}
+\resizebox{\textwidth}{!}{\begin{tabular}{|l|l|c|c|c|}
 \hline
 \textbf{Distribution} 
     & \textbf{Optimization} 
@@ -251,7 +257,7 @@ From Section \ref{sec:q1_q1}, we believed that Optimization 2 should be the way 
     & Opt 2 & 8.17ms & 50.26\% & 88.66\% \\
 \hline
 
-\end{tabular}
+\end{tabular}}
 \caption{Some \textit{ncu} Results Optimizations 0-2 of \textit{histogram\_kernel}}
 \label{table:q1_q2}
 \end{table}
@@ -324,8 +330,8 @@ The plots can be seen in Figure \ref{fig:q1_normal} and Figure \ref{fig:q1_unifo
     \caption{With 1024000 Elements}
 \end{subfigure}
         
- \label{fig:q1_normal}
 \caption{Histogram Plots for Normal Distribution}
+\label{fig:q1_normal}
 \end{figure}
 
 \begin{figure}
@@ -354,7 +360,7 @@ The plots can be seen in Figure \ref{fig:q1_normal} and Figure \ref{fig:q1_unifo
 \label{fig:q1_uniform}
 \end{figure}
 
-\subsection{Q8: Profiling for $N = 1024$ and Additional Optimization}
+\subsection{Q8: Profiling for N = 1024 and Additional Optimization}
 The Google Colab Notebook contains the detailed information about the \verb|ncu| run for both uniform and normal distribution when $N = 1024$. 
 \begin{itemize}
 \item \underline{For Normal Distribution}: The Shared Memory Configuration Size was 32.77 kB and Achieved Occupancy was 91.35\% for \verb|histogram_kernel|. For \verb|convert_kernel|, Shared Memory Configuration Size was the same and Achieved Occupancy was 95.54\%.
@@ -365,6 +371,71 @@ The Google Colab Notebook contains the detailed information about the \verb|ncu|
 The next optimization we would have liked to try was to change the bins that each thread in a block in \verb|histogram_kernel| is responsible for initializing and accumulating. Currently, we jump 1024 bins to get to the next bin that the thread is responsible for. Instead, we would like to experiment what would happen if we make each thread responsible for 4 \underline{consecutive} bin. Thus, instead of thread 0 being responsible for bin 0, 1024, 2048, and 3072 -- it would be responsible for bin 0, 1, 2, 3. This will reveal some information about access patterns on GPUs and which access patterns are better for shared memory.
 
 \section{Exercise 2 -- Reduction}
+In this task we implement a distributed reduction algorithm for a 1D vector of 32bit floats.
+We start by implementing the initializing (which is performed on the CPU) and by providing a reference implemtation.
+Then we implement a naive parallel version of the same algorithm.
+From there we will iteratively improve and profile our solution.
+
+\subsection{Initialization and Reference Solution}\label{sec:2_init}
+We start by initializing a vector of variable size (given as input to the program) of uniformly distributed random values $r \in (0, 1)$.
+For this we use a default seeded standard mersenne twister engine.
+Our reference solution looks like this:
+\begin{lstlisting}[language=c++, caption=Computation of Reference Solution, label=lst:a2_ref_sol]
+static float compute_reference_solution(const float *a, const int input_length) {
+    double reference_solution = 0.0;
+    for (int i = 0; i < input_length; ++i) {
+        reference_solution += static_cast<double>(a[i]);
+    }
+
+    return static_cast<float>(reference_solution);
+}
+\end{lstlisting}
+
+Notably in \ref{lst:a2_ref_sol} is the use of static casts from floats to double.
+This is necessary, because for large input sizes (close to the max sizes of signed integers) we can expect rounding or overflow errors.
+We profiled the reference solution with both casting and without and did not observe any statistically noteble runtime deviations.
+However, we did observe that it is necessary for ensuring a correct result.
+
+\subsection{Na\"ive GPU implementation}\label{sec:2_naive}
+The simplest solution we could come up with, is spawning $N$ threads, each adding $a[i]$ towars a shared result variable.
+On the positive side: this approach is very simple, each thread just has to access the global index to which it corresponds, reads the value and add it towards the accumulator.
+However, the main issue with this apprach is, that we have to ensure that the add and overwrite needs to be performed atomically.
+Therefore, this approach not really parallelizes the computation, because only one thread at a time has access to the shared resource.
+We implemented it anyway.
+The reults are unsuprisingly bad:
+\itodo{Add profiling and code}
+Besides bad performance, we also run into precision errors for large inputs (see section \ref{sec:2_init})
+
+\subsection{Block-level tiling}\label{sec:2_blt}
+In section \ref{sec:2_naive}, identified multiple problems.
+\begin{itemize}
+  \item Blocked threads due to global \footnote{As far as we understood, CUDA is smart enough to identify on which level to block:
+if the destination pointer is a shared variable (visible to threads in the same block), cuda synchronizes the threads within this block.
+However, when the destination is in global memory, CUDA synchronizes access over all threads over all blocks.}
+\verb|atomicAdd()|.
+  \item Rounding problems due to adding small and big floats to together
+\end{itemize}
+We address both of these issues by introducing tiling.
+\itodo{Write down idea}
+\itodo{Profiling}
+\itodo{Conclusion}
+
+\subsection{Thread-level tiling}\label{sec:2_tlt}
+By introducing tiling, we saw some performance improvement in section \ref{sec:2_blt}.
+However, it is still below expectation in relation to the used level.
+For this there are two possible explanations:
+\begin{itemize}
+  \item Still a lot of blocking behaviour (this time on block level)
+  \item DRAM bursts not optimally used, e.g. because each thread independently accesses array.
+\end{itemize}
+Both problems could be addressed by introducing tiling on thread level.
+Each thread does not add one element of the big array onto an accumulator, but independently accumulates $NT$ elements.
+The thread can use a local register for this, which is a lot more efficient than shared or global memory.
+Results from each thread are then accumulated on block level, and then globally.
+Note that $NT$ is a paramter which can be optimised.
+\itodo{Profiling}
+\itodo{Conclusion}
+
 
 \section{Exercise 3 -- Tiled Matrix Multiplication}
 We will occasionally refer to the Google Colab Notebook where we ran some of the experiments for this question using the Tesla T4 GPU. This notebook can be found under \verb|q3/colab.ipynb| in the submitted code. We noticed that for most of the runs performed on the Tesla T4 GPU, the tiled matrix-multiplication runtimes seem to be greater than the naive GEMM implementation on the GPU. This was not the case on the H100 GPU (present on the school GPU cluster) -- where tiled matrix multiplication gave great speedups. 
@@ -375,9 +446,9 @@ Thus, for runtimes, we defer to using the H100 GPU available on the school's GPU
 
 \subsection{Q1: Tiled Global Mem Reads}
 
-\subsection{Q2: Output for $A = B = (1024 \times 1024)$}
+\subsection{Q2: Output for A = B = (1024 x 1024)}\mtodo{Reformulate heading to not contain equations}
 
-\subsection{Q3: Output for $A = (513 \times 8192)$ and $B = (8192 \times 1023)$}
+\subsection{Q3: Output for A = (513 x 8192) and B = (8192 x 1023)} \mtodo{Reformulate heading to not contain equations}
 
 \subsection{Q4: Achieved Occupancy and Shared Mem Usage}
 
