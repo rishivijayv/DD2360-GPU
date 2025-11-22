@@ -367,7 +367,23 @@ The next optimization we would have liked to try was to change the bins that eac
 \section{Exercise 2 -- Reduction}
 
 \section{Exercise 3 -- Tiled Matrix Multiplication}
+We will occasionally refer to the Google Colab Notebook where we ran some of the experiments for this question using the Tesla T4 GPU. This notebook can be found under \verb|q3/colab.ipynb| in the submitted code. We noticed that for most of the runs performed on the Tesla T4 GPU, the tiled matrix-multiplication runtimes seem to be greater than the naive GEMM implementation on the GPU. This was not the case on the H100 GPU (present on the school GPU cluster) -- where tiled matrix multiplication gave great speedups. 
 
+We believe that this might be because of the Tesla T4 GPU is quite old compared to the H100 GPU, and thus lags behind when it comes to architectural advantages. For instance, the Tesla T4 GPU seems to have a lower L1/Shared Memory space, meaning that advantages of tiling might be limited compared to the H100 GPU. This, along with other architectural advances -- such as lower memory latency, better ability to deal with bank conflicts (by virtue of being a newer architecture), and higher L1/Shared-Memory, among other things -- is the likely reason that the performance difference is very apparent on the H100 GPU but does not manifest as well with the Tesla T4 GPU with our basic implementation of the tiled matrix-multiplication. 
+
+Thus, for runtimes, we defer to using the H100 GPU available on the school's GPU cluster. However, for profiling, we will use the results for the Google Colab Tesla T4 GPU (since profiling tools are not available on the school's GPU cluster). The output for the runs requested in Q2 and Q3 on Google Colab can be found in the \verb|q3/colab.ipynb| file. For the Graph in Q5, we focus on the graph for the school cluster's GPU. The graph for the runtimes obtained on Google Colab can be found in the Appendix section.
+
+\subsection{Q1: Tiled Global Mem Reads}
+
+\subsection{Q2: Output for $A = B = (1024 \times 1024)$}
+
+\subsection{Q3: Output for $A = (513 \times 8192)$ and $B = (8192 \times 1023)$}
+
+\subsection{Q4: Achieved Occupancy and Shared Mem Usage}
+
+\subsection{Q5: Runtimes}
+
+\section{Appendix}
 
 
 % content end
