@@ -396,6 +396,9 @@ This is necessary, because for large input sizes (close to the max sizes of sign
 We profiled the reference solution with both casting and without and did not observe any statistically noteble runtime deviations.
 However, we did observe that it is necessary for ensuring a correct result.
 
+Remarks about the initialization: by far the most time was spend with initializing the data on the CPU.
+In a benchmark of 5 runs, it took an average 102seconds on the GPU 
+
 \subsection{Na\"ive GPU implementation}\label{sec:2_naive}
 The simplest solution we could come up with, is spawning $N$ threads, each adding $a[i]$ towars a shared result variable.
 On the positive side: this approach is very simple, each thread just has to access the global index to which it corresponds, reads the value and add it towards the accumulator.
