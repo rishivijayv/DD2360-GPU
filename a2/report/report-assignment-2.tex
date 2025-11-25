@@ -396,18 +396,35 @@ This is necessary, because for large input sizes (close to the max sizes of sign
 We profiled the reference solution with both casting and without and did not observe any statistically noteble runtime deviations.
 However, we did observe that it is necessary for ensuring a correct result.
 
-Remarks about the initialization: by far the most time was spend with initializing the data on the CPU.
-In a benchmark of 5 runs, it took an average 102seconds on the GPU 
+A remark about the initialization: by far the most time was spend with initializing the data on the CPU.
+To reduce overhead, we reused the same initialized array for multiple benchmark runs to safe compute resources.
+However, for each run, fresh GPU memory was allocated and freed.
+
+We decided to use much larger problem sizes than suggested in the exercise, mainly because for small input sizes runtimes were basically instantaneous.
+To get any meaningful resutls, we benchmarked at array sizes $2^{20}, 2^{22}, 2^{24}, ..., 2^{30}$.
 
 \subsection{Na\"ive GPU implementation}\label{sec:2_naive}
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=.75\textwidth]{../images/q2/runtimes_colab.png}
+  \end{center}
+  \caption{}\label{fig:runtimes_ex2}
+\end{figure}
 The simplest solution we could come up with, is spawning $N$ threads, each adding $a[i]$ towars a shared result variable.
 On the positive side: this approach is very simple, each thread just has to access the global index to which it corresponds, reads the value and add it towards the accumulator.
 However, the main issue with this apprach is, that we have to ensure that the add and overwrite needs to be performed atomically.
 Therefore, this approach not really parallelizes the computation, because only one thread at a time has access to the shared resource.
 We implemented it anyway.
-The reults are unsuprisingly bad:
-\itodo{Add profiling and code}
-Besides bad performance, we also run into precision errors for large inputs (see section \ref{sec:2_init})
+Runtime did in fact decrease slightly for large enough inputs (see figure \ref{fig:runtimes_ex2}), however, not in relation to the degree of parallization.
+Besides bad performance, we also ran into precision errors for large inputs (see section \ref{sec:2_init}), ergo the computed solution is incorrect (without aggregating using a double data type).
+
+\subsubsection{Analysis}
+\begin{itemize}
+  \item Global memory reads: $N$ (one for each element)
+  \item Atomic operations: $N$
+  \item Global memory: $N$ * 4 bytes (input array, floats) + 4 bytes (aggregated value, 1 float)
+  \item Shared mempory: No shared memory (on block level)
+\end{itemize}
 
 \subsection{Block-level tiling}\label{sec:2_blt}
 In section \ref{sec:2_naive}, identified multiple problems.
@@ -419,26 +436,61 @@ However, when the destination is in global memory, CUDA synchronizes access over
   \item Rounding problems due to adding small and big floats to together
 \end{itemize}
 We address both of these issues by introducing tiling.
-\itodo{Write down idea}
-\itodo{Profiling}
-\itodo{Conclusion}
+The idea is the following:
+Each thread block has a shared memory variable, each thread accumulates one value onto this variable.
+Afterwards, one thread per threadblock aggregates the shared value to the global solution.
+
+In figure \ref{fig:runtimes_ex2}, the purple line represents this tiling on block level approach.
+As we can see, it outperforms the na"ive (red line) as well as the cpu reference solution (orange line) on larger input sizes.
+Besides runtime optimizations, this also solves precision problem.
+Rounding erros happen, when very small values are added on very large ones.
+In the na"ive solution, all values are aggregated sequentially, therefore after enough iterations, the aggregated value becomes big enough so that information is lost on each addition.
+By using the tiling apprach, each block aggregates values within each precision limits.
+In the second step, all block level values are again within a similar dimension, increasing the numerical stability of the algorithm.
+
+\subsubsection{Analysis}
+\begin{itemize}
+  \item Global memory reads: $N$ (one for each element)
+  \item Atomic operations: $N$ (on shared level) + $N$/1024 (global, $N$/1024 = number of blocks)
+  \item Global memory: $N$ * 4 bytes (input array, floats) + 4 bytes (aggregated value, 1 float)
+  \item Shared mempory: $N$/1024 * 4bytes (one aggregation value per block)
+\end{itemize}
 
 \subsection{Thread-level tiling}\label{sec:2_tlt}
 By introducing tiling, we saw some performance improvement in section \ref{sec:2_blt}.
-However, it is still below expectation in relation to the used level.
+However, it performs still below expectation.
 For this there are two possible explanations:
 \begin{itemize}
   \item Still a lot of blocking behaviour (this time on block level)
   \item DRAM bursts not optimally used, e.g. because each thread independently accesses array.
 \end{itemize}
 Both problems could be addressed by introducing tiling on thread level.
-Each thread does not add one element of the big array onto an accumulator, but independently accumulates $NT$ elements.
-The thread can use a local register for this, which is a lot more efficient than shared or global memory.
-Results from each thread are then accumulated on block level, and then globally.
-Note that $NT$ is a paramter which can be optimised.
-\itodo{Profiling}
-\itodo{Conclusion}
 
+Idea: each thread does not add one element of the big array onto an accumulator, but independently accumulates $NT$ elements.
+The thread can use a local register for this, which is a lot more efficient than shared or global memory.
+Then, results from each thread are accumulated on block level, then globally.
+Note that $NT$ is a paramter which can be optimised.
+For this assignement we tried different values and found that values in the dimension of $NT \in \{1024, 2048, 4096\}$ worked the best and we used $NT = 1024$ for the rest of this exercise.
+
+The performance increase was enormous. We achieved runtimes smaller than 1ms for all but the largest input size.
+For the biggest input, we performed still under 3ms. This is over an $1250\times$ performance increase!
+
+\subsubsection{Analysis}
+\begin{itemize}
+  \item Global memory reads: $N$ (one for each element)
+  \item Atomic operations: $N$/1024/1024 (shared, $N$/1024/1024 = number of blocks)
+  \item Global memory: $N$ * 4 bytes (input array, floats) + 4 bytes (aggregated value, 1 float)
+  \item Shared mempory: $N$/1024/1024 * 4bytes (one aggregation value per block)
+\end{itemize}
+
+\textbf{Shared Memory Configuration Size and Achieved Occupancy:}\\
+Section \ref{sec:ncu} shows in detail the profiling information gained by \verb|ncu|.
+I want to highlight the \verb|Achieved Occupancy|, where we achieved $>99\%$.
+This is basically optimal, therefor not really much to improve in this regard.\\
+\verb|Shared Memory Configuration Size| indicates the shared memory size, in bytes, that is configured by the CUDA driver for this kernel launch, per block\footnote{\url{https://forums.developer.nvidia.com/t/meaning-of-shared-memory-configuration-size/199669/2}}.
+The allocated value per block is $32KB$, which is around the size of 8000 floats.
+This memory can be filled and accessed by all threads within the threadblock.
+Further optimizations could investigate if thread access patterns could be changed so that memory bursts can be used even more effective and elapsed cycles could be further improved.
 
 \section{Exercise 3 -- Tiled Matrix Multiplication}
 We will occasionally refer to the Google Colab Notebook where we ran some of the experiments for this question using the Tesla T4 GPU. This notebook can be found under \verb|q3/colab.ipynb| in the submitted code. We noticed that for most of the runs performed on the Tesla T4 GPU, the tiled matrix-multiplication runtimes seem to be greater than the naive GEMM implementation on the GPU. This was not the case on the H100 GPU (present on the school GPU cluster) -- where tiled matrix multiplication gave great speedups. 
@@ -459,7 +511,6 @@ Note that the presence of $t_y$ is there because of our specific implementation.
 
 \subsection{Q2: Output for A = B = (1024 x 1024)}
 The output screenshot for the given configuration can be seen in Figure \ref{fig:ex3_part2}. This was obtained on H100. The output matrix result has been truncated to only show the first 5 rows and columns, but an element-wise comparison was performed with the reference result, the results of which are printed after the truncated matrices. 
-
 
 \begin{figure}[H]
     \centering
@@ -536,11 +587,134 @@ One interesting observation here is the rate of growth of the runtimes for the n
 
 
 \section{Appendix}
+\subsection{Runtime Specs}\label{sec:specs}
+We used the Google Colab runtime environment, which at the time of testing provided us the following hardware:
+\subsubsection{CPU specs}\label{sec:cpu_specs}
+\begin{verbatim}
+Architecture:                x86_64
+  CPU op-mode(s):            32-bit, 64-bit
+  Address sizes:             46 bits physical, 48 bits virtual
+  Byte Order:                Little Endian
+CPU(s):                      2
+  On-line CPU(s) list:       0,1
+Vendor ID:                   GenuineIntel
+  Model name:                Intel(R) Xeon(R) CPU @ 2.00GHz
+    CPU family:              6
+    Model:                   85
+    Thread(s) per core:      2
+    Core(s) per socket:      1
+    Socket(s):               1
+\end{verbatim}
+
+\subsubsection{GPU specs}\label{sec:gpu_specs}
+\begin{verbatim}
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2024 NVIDIA Corporation
+Built on Thu_Jun__6_02:18:23_PDT_2024
+Cuda compilation tools, release 12.5, V12.5.82
+Build cuda_12.5.r12.5/compiler.34385749_0
+Tue Nov 25 08:21:44 2025
+
+NVIDIA-SMI 550.54.15
+Driver Version: 550.54.15
+CUDA Version: 12.4
+Name: Tesla T4
+\end{verbatim}
+
+\subsection{Additional Information Exercise 2}\label{sec:app:ex2}
+\subsubsection{NCU Output}\label{sec:ncu}
+\begin{verbatim}
+Initialise:
+	Input length: 2**30 = 1073741824
+	...took: 54755 ms
+
+==PROF== Connected to process 6781 (/content/reduction)
+	...took: 1561437401 ns
+
+==PROF== Profiling "reduction_kernel_tiling_mem_adj" - 0: \
+         0%....50%....100% - 9 passes
+	...took: 688491412 ns
+
+==PROF== Disconnected from process 6781
+[6781] reduction@127.0.0.1
+  reduction_kernel_tiling_mem_adj(float *, float *, int, int) \
+  (1024, 1, 1)x(1024, 1, 1), Context 1, Stream 7, Device 0, CC 7.5
+
+    Section: GPU Speed Of Light Throughput
+    ----------------------- ----------- ------------
+    Metric Name             Metric Unit Metric Value
+    ----------------------- ----------- ------------
+    DRAM Frequency                  Ghz         4.99
+    SM Frequency                    Mhz       584.99
+    Elapsed Cycles                cycle    3,730,476
+    Memory Throughput                 %        75.98
+    DRAM Throughput                   %         0.39
+    Duration                         ms         6.38
+    L1/TEX Cache Throughput           %        94.93
+    L2 Cache Throughput               %         0.15
+    SM Active Cycles              cycle 3,649,244.88
+    Compute (SM) Throughput           %        75.98
+    ----------------------- ----------- ------------
+
+    INF   Compute and Memory are well-balanced: To reduce runtime, \
+          both computation and memory traffic must be reduced. 
+          Check both the Compute Workload Analysis and Memory \
+          Workload Analysis sections.                               
+
+    Section: Launch Statistics
+    -------------------------------- --------------- ---------------
+    Metric Name                          Metric Unit    Metric Value
+    -------------------------------- --------------- ---------------
+    Block Size                                                 1,024
+    Function Cache Configuration                     CachePreferNone
+    Grid Size                                                  1,024
+    Registers Per Thread             register/thread              41
+    Shared Memory Configuration Size           Kbyte           32.77
+    Driver Shared Memory Per Block        byte/block               0
+    Dynamic Shared Memory Per Block       byte/block               0
+    Static Shared Memory Per Block        byte/block               4
+    # SMs                                         SM              40
+    Threads                                   thread       1,048,576
+    Uses Green Context                                             0
+    Waves Per SM                                               25.60
+    -------------------------------- --------------- ---------------
+
+    Section: Occupancy
+    ------------------------------- ----------- ------------
+    Metric Name                     Metric Unit Metric Value
+    ------------------------------- ----------- ------------
+    Block Limit SM                        block           16
+    Block Limit Registers                 block            1
+    Block Limit Shared Mem                block          128
+    Block Limit Warps                     block            1
+    Theoretical Active Warps per SM        warp           32
+    Theoretical Occupancy                     %          100
+    Achieved Occupancy                        %        99.90
+    Achieved Active Warps Per SM           warp        31.97
+    ------------------------------- ----------- ------------
+
+    Section: GPU and Memory Workload Distribution
+    -------------------------- ----------- ------------
+    Metric Name                Metric Unit Metric Value
+    -------------------------- ----------- ------------
+    Average DRAM Active Cycles       cycle   124,362.50
+    Total DRAM Elapsed Cycles        cycle  254,738,432
+    Average L1 Active Cycles         cycle 3,649,244.88
+    Total L1 Elapsed Cycles          cycle  149,156,192
+    Average L2 Active Cycles         cycle   280,243.66
+    Total L2 Elapsed Cycles          cycle  174,470,752
+    Average SM Active Cycles         cycle 3,649,244.88
+    Total SM Elapsed Cycles          cycle  149,156,192
+    Average SMSP Active Cycles       cycle 3,649,189.76
+    Total SMSP Elapsed Cycles        cycle  596,624,768
+    -------------------------- ----------- ------------
+\end{verbatim}
+
 \subsection{Exercise 3 -- Runtimes from Google Colab}
 Figure \ref{fig:appendix_t4_runtimes} shows the log-log line graphs of the runtimes obtained from the experiment in Section \ref{sec:ex3_runtimes} obtained on Google Colab on the Tesla T4 GPUs. As explained at the beginning of the report for Exercise 3, the different architectures of the H100 and the Tesla T4 GPU give rise to very different looking plots. The runtimes of the tiled versions and the naive CUDA version are a lot closer to each other for the intermediate-big matrix sizes than was the case on the H100 GPU. The biggest tile size -- $32 \times 32$ -- which saw the fastest runtimes on the H100 here does not start out-performing the other implementations until we get to the largest matrix multiplication. 
 
 One of the reasons for this, among others, could be the fact that the lower L1/Shared-Memory space on the Tesla T4 GPU mean that if greater shared memory is used, then a greater number of cache misses occur, which could further inflate the runtime in other ways. To make up for these greater number of cache misses because of greater shared-memory usage thanks to greater tile sizes, perhaps a much greater number of computations need to be performed -- which seems to start being the case with $2048 \times 2048$ matrix multiplication. If we had Google Colab credits, we would have liked to investigate what happened on even bigger matrix sizes, but we did not want to run out of free usage time while there are still 2 assignments and a project left in the course. 
-\begin{figure}
+\begin{figure}[b]
 \centering
 \begin{subfigure}{0.4\textwidth}
     \includegraphics[width=\textwidth]{../images/q3/t4_with_cpu.png}
@@ -557,6 +731,8 @@ One of the reasons for this, among others, could be the fact that the lower L1/S
 \caption{Log-Log Plot of Different matmul Implementations on Tesla T4}
 \label{fig:appendix_t4_runtimes}
 \end{figure}
+
+
 
 % content end
 %###############################################################################
