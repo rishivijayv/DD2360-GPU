@@ -1,0 +1,651 @@
+Initialise:
+	Input length: 2**20 = 1048576
+	...took: 47 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500087
+	...took: 3 ms
+
+
+Copy data to device:
+	...took: 102 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Naive solution is: 0.500085
+	...took: 3 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Tiling solution is: 0.500087
+	...took: 3 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1 
+	Total number of Threads: 1024
+	Elements per Thread: 1024
+	Tiling solution is: 0.494426
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500087
+	...took: 3 ms
+
+
+Copy data to device:
+	...took: 1 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Naive solution is: 0.500086
+	...took: 3 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Tiling solution is: 0.500087
+	...took: 3 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1 
+	Total number of Threads: 1024
+	Elements per Thread: 1024
+	Tiling solution is: 0.494426
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500087
+	...took: 3 ms
+
+
+Copy data to device:
+	...took: 1 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Naive solution is: 0.500086
+	...took: 3 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Tiling solution is: 0.500087
+	...took: 3 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1 
+	Total number of Threads: 1024
+	Elements per Thread: 1024
+	Tiling solution is: 0.494426
+	...took: 0 ms
+
+
+--------------------------------------------------
+
+Initialise:
+	Input length: 2**22 = 4194304
+	...took: 208 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500095
+	...took: 13 ms
+
+
+Copy data to device:
+	...took: 3 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Naive solution is: 0.500119
+	...took: 14 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Tiling solution is: 0.500094
+	...took: 12 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 4 
+	Total number of Threads: 4096
+	Elements per Thread: 1024
+	Tiling solution is: 0.503170
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500095
+	...took: 12 ms
+
+
+Copy data to device:
+	...took: 3 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Naive solution is: 0.500117
+	...took: 14 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Tiling solution is: 0.500094
+	...took: 12 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 4 
+	Total number of Threads: 4096
+	Elements per Thread: 1024
+	Tiling solution is: 0.503170
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500095
+	...took: 12 ms
+
+
+Copy data to device:
+	...took: 3 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Naive solution is: 0.500117
+	...took: 14 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 4096 
+	Total number of Threads: 4194304
+	Tiling solution is: 0.500094
+	...took: 12 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 4 
+	Total number of Threads: 4096
+	Elements per Thread: 1024
+	Tiling solution is: 0.503170
+	...took: 0 ms
+
+
+--------------------------------------------------
+
+Initialise:
+	Input length: 2**24 = 16777216
+	...took: 764 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499989
+	...took: 49 ms
+
+
+Copy data to device:
+	...took: 14 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Naive solution is: 0.500006
+	...took: 58 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Tiling solution is: 0.499989
+	...took: 46 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 16 
+	Total number of Threads: 16384
+	Elements per Thread: 1024
+	Tiling solution is: 0.499273
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499989
+	...took: 49 ms
+
+
+Copy data to device:
+	...took: 14 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Naive solution is: 0.500005
+	...took: 58 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Tiling solution is: 0.499989
+	...took: 39 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 16 
+	Total number of Threads: 16384
+	Elements per Thread: 1024
+	Tiling solution is: 0.499273
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499989
+	...took: 49 ms
+
+
+Copy data to device:
+	...took: 14 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Naive solution is: 0.500006
+	...took: 47 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 16384 
+	Total number of Threads: 16777216
+	Tiling solution is: 0.499989
+	...took: 25 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 16 
+	Total number of Threads: 16384
+	Elements per Thread: 1024
+	Tiling solution is: 0.499273
+	...took: 0 ms
+
+
+--------------------------------------------------
+
+Initialise:
+	Input length: 2**26 = 67108864
+	...took: 3092 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500020
+	...took: 197 ms
+
+
+Copy data to device:
+	...took: 56 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Naive solution is: 0.250000
+	...took: 212 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Tiling solution is: 0.500018
+	...took: 93 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 64 
+	Total number of Threads: 65536
+	Elements per Thread: 1024
+	Tiling solution is: 0.498596
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500020
+	...took: 201 ms
+
+
+Copy data to device:
+	...took: 57 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Naive solution is: 0.250000
+	...took: 132 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Tiling solution is: 0.500018
+	...took: 71 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 64 
+	Total number of Threads: 65536
+	Elements per Thread: 1024
+	Tiling solution is: 0.498596
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.500020
+	...took: 198 ms
+
+
+Copy data to device:
+	...took: 57 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Naive solution is: 0.250000
+	...took: 132 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 65536 
+	Total number of Threads: 67108864
+	Tiling solution is: 0.500018
+	...took: 71 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 64 
+	Total number of Threads: 65536
+	Elements per Thread: 1024
+	Tiling solution is: 0.498596
+	...took: 0 ms
+
+
+--------------------------------------------------
+
+Initialise:
+	Input length: 2**28 = 268435456
+	...took: 13241 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499965
+	...took: 815 ms
+
+
+Copy data to device:
+	...took: 227 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Naive solution is: 0.062500
+	...took: 646 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Tiling solution is: 0.499962
+	...took: 287 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 256 
+	Total number of Threads: 262144
+	Elements per Thread: 1024
+	Tiling solution is: 0.499763
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499965
+	...took: 906 ms
+
+
+Copy data to device:
+	...took: 249 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Naive solution is: 0.062500
+	...took: 531 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Tiling solution is: 0.499962
+	...took: 289 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 256 
+	Total number of Threads: 262144
+	Elements per Thread: 1024
+	Tiling solution is: 0.499763
+	...took: 0 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499965
+	...took: 799 ms
+
+
+Copy data to device:
+	...took: 230 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Naive solution is: 0.062500
+	...took: 531 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 262144 
+	Total number of Threads: 268435456
+	Tiling solution is: 0.499962
+	...took: 289 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 256 
+	Total number of Threads: 262144
+	Elements per Thread: 1024
+	Tiling solution is: 0.499764
+	...took: 0 ms
+
+
+--------------------------------------------------
+
+Initialise:
+	Input length: 2**30 = 1073741824
+	...took: 52049 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499982
+	...took: 3198 ms
+
+
+Copy data to device:
+	...took: 921 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Naive solution is: 0.015625
+	...took: 2241 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Tiling solution is: 0.499988
+	...took: 1184 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Elements per Thread: 1024
+	Tiling solution is: 0.500092
+	...took: 2 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499982
+	...took: 3193 ms
+
+
+Copy data to device:
+	...took: 921 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Naive solution is: 0.015625
+	...took: 2236 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Tiling solution is: 0.499988
+	...took: 1190 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Elements per Thread: 1024
+	Tiling solution is: 0.500092
+	...took: 2 ms
+
+
+Compute reference solution:
+	Reference solution is: 0.499982
+	...took: 3422 ms
+
+
+Copy data to device:
+	...took: 921 ms
+
+
+Launching naive kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Naive solution is: 0.015625
+	...took: 2232 ms
+
+
+Launching tiling kernel:
+	Threads per Block: 1024 
+	Number of Blocks: 1048576 
+	Total number of Threads: 1073741824
+	Tiling solution is: 0.499988
+	...took: 1195 ms
+
+
+Launching tiling kernel with memory opt:
+	Threads per Block: 1024 
+	Number of Blocks: 1024 
+	Total number of Threads: 1048576
+	Elements per Thread: 1024
+	Tiling solution is: 0.500092
+	...took: 2 ms
+
