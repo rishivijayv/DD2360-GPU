@@ -169,6 +169,8 @@
 \newcommand{\Prob}{\mathbb{P}}
 
 \renewcommand{\epsilon}{\varepsilon}
+% \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+% \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
 
 
 \newcommand{\itodo}[2][yellow]{\todo[inline, color=#1!40]{#2}}
@@ -201,6 +203,50 @@ You can find code for the code-related questions of the assignment under \verb|q
 \newpage
 
 \section{Exercise 1}
+For this question, we assume the following convention: 
+\begin{itemize}
+\item We assume that $X$ is the number of columns (\verb|n| in the code)
+\item We assume that $Y$ is the number of rows (\verb|m| in code)
+\item We assume that a $64 \times 16$ CUDA block means that \verb|blockDim.x| is 64 and that \verb|blockDim.y| is 16. This means that the block has 64 columns and 16 rows. 
+\end{itemize}
+
+The \verb|PictureKernel| computes the indices that the current thread is responsible for, and executes code in the \verb|if| branch if the index is within range, or else does not do anything. Thus, we will have control divergence when some threads in a warp are within the range of the picture, and some threads are not. Thus, the question of control divergence boils down to: \textbf{how many warps has some threads in range and some threads out of range?}
+
+\subsection{When X=800 and Y=600}
+\label{sec:ex1_part1}
+The image can be divided in to matrix of blocks, with $\ceil{800 / 64} = 13$ blocks in the X-direction and $\ceil{600 / 16} = 38$ blocks in the Y-direction. That is, this matrix of blocks (which we will call MoB) has 13 columns and 38 rows of blocks of CUDA size $64 \times 16$. Each block has $16 \times 64 = 1024$ threads, and each warp in a block has 32 threads. Thus, there are a total of $1024 / 32 = 32$ warps per block. There are $38 \times 13 = 494$ such blocks. So, the total number of warps generated during kernel execution are $494 \times 32 = 15808$.
+
+We will now consider the topic of control divergence. For our case, this will happen either because of the last column of blocks in the MoB (except the last block in this column), or the last row of the MoB (except the last block in the row), or the last block in the MoB (ie, the block at row 38 and column 13). This is because only these blocks will have some threads that are within range of the picture and some threads that are out of range. We will call these Case I, II and III respectively and analyze these divergences separately
+
+\begin{itemize}
+\item \underline{Case I}: We know that in a block, threads are allocated to warps in a row-major order. In a $64 \times 16$ CUDA block, each row in the block has $64 / 32 = 2$ warps. For the 13th block in each row of MoB (except the last row), there are $800 \% 64 = 32$ threads that are in range for the picture and 32 threads that are out of range. Thus for this last block in each row of the MoB, there is \textbf{no divergence}, as each warp is either fully in range or fully out of range. 
+\item \underline{Case II}: For the 38th block in each column of the MoB (except the last column), there are $600 \% 16 = 8$ rows of threads in a block that are in range for the picture and 8 rows of threads in a block that are out of range of the picture. However, since warps are allocated in row-major order, there is \textbf{no divergence} here either, since entire rows of threads are either within range or out of range. 
+\item \underline{Case III}: The case of the last block can be treated in the same way: in the last 8 rows in the block, all threads are out of range. For each of the first 8 rows, 32 threads (1st warp) are within range, and 32 threads (2nd warp) are out of range. So, there is \textbf{no divergence} here either. 
+\end{itemize}
+
+So, combining our observations, there is \textbf{\underline{no control divergence}} in this configuration.
+
+\subsection{When X=600 and Y=800}
+\label{sec:ex1_part2}
+We will use the same analysis conventions and terminology that we did for Section \ref{sec:ex1_part1}. In the MoB, there are $\ceil{600 / 64} = 10$ blocks in the X-direction and $\ceil{800 / 16} = 50$ blocks in the Y-direction (ie, 50 rows and 10 columns).  Also, note that $16 \times 50 = 800$, so there is no Case II to consider here as there are no blocks in the MoB where there are threads out of range in the Y-direction of the picture. 
+\begin{itemize}
+\item \underline{Case I}: For the 10th block in each row of MoB (except the last row), there are $600 \% 64 = 24$ threads that are in range for the picture and 40 threads that are out of range. Recall that each row of a block has 2 warps with 32 threads each. Thus, for blocks in Case I, there are 24 threads that are in range and 8 threads that are out of range for the 1st warp in each row of the block. The second warp in each row of the block is completely out of range and faces no divergence. Thus, for each row of a block in Case I, there is 1 divergent warp. In total, there are 16 rows in a block, giving us 16 divergent warps per block. There are exactly $\floor{800 / 16} = 800 / 16 = 50$ such blocks in the last column in the MoB. Thus, the total number of warps facing control divergence in Case I is $16 \times 50$ or \textbf{800 warps}.
+\item \underline{Case II}: There are no blocks that will have some rows of threads in range and some rows of threads out of range, so this case is not a cause of divergence here.
+\item \underline{Case III}: This was accounted for in Case I since there are no partial blocks (some rows of threads in range and some rows of threads out of range) in the Y-direction. 
+\end{itemize}
+
+Thus, in total, in this case there are \textbf{800 warps} that experience control divergence.
+
+\subsection{When X=600 and Y=899}
+Now in the MoB, there are $\ceil{600 / 64} = 10$ blocks in the X-direction and $\ceil{899 / 16} = 57$ blocks in the Y-direction (ie, 57 rows and 10 columns).
+\begin{itemize}
+\item \underline{Case I}: This is similar to Section \ref{sec:ex1_part2}, so the number of warps per thread block facing control divergence for blocks in the 10th column of the MoB is 16. There are $\floor{899 / 16} = 56$ such threads blocks (since we omit the very last thread block till Case III). So, there are a total of $16 \times 56$ warps facing control divergence in Case I, ie, \textbf{896 warps}.
+\item \underline{Case II}: For the 57th block in each column of the MoB (except the last column), there are $899 \% 16 = 3$ rows of threads in a block that are in range of the picture and then 13 rows of blocks that are out of range. But again, since warps are allocated in row-major order, entire warps being in range or out of range means that for us, there is \textbf{no control divergence} form this case. 
+\item \underline{Case III}: Finally, for the last block in the MoB (ie, the block at row 57 and column 10), there are $899 \% 16 = 3$ rows of threads that are partially in range and partially out of range. The remaining 13 rows of threads are completely out of range and thus have no control divergence. For these first 3 rows of threads, the first $600 \% 64 = 24$ threads are in range of the picture and the last 40 threads are out of range. Thus, similar to Case I here, each row has 1 warp (the first warp in each of the 3 rows) that has control divergence, giving us \textbf{3 warps} with control divergence in this case.
+\end{itemize}
+
+So, in total, there are $896 + 3$ or \textbf{899 warps} facing control divergence in this configuration.
+
 \section{Exercise 2}
 \section{Bonus}
 \section{Appendix}
