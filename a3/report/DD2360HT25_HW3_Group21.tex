@@ -248,9 +248,48 @@ Now in the MoB, there are $\ceil{600 / 64} = 10$ blocks in the X-direction and $
 So, in total, there are $896 + 3$ or \textbf{899 warps} facing control divergence in this configuration.
 
 \section{Exercise 2}
+The file \verb|q2/vecAddKernel.cu| contains our implementation of the streamed and normal vector addition using CUDA. The major changes to the original file include using \textbf{pinned host memory} through calls to \verb|cudaHostAlloc| instead of \verb|malloc|, and the addition of the streamed way of distributing work for vector addition. The CUDA kernel itself is called \verb|addGpu| and remains unchanged from Assignment 1
+
+For the streamed implementation, we first determine the number of segments the original array will be divided in to based on the provided \verb|S_seg|. We then create 4 streams as requested by the assignment, and then iterate through the segments, distributing them to the 4 streams in a \textbf{round-robin} fashion (segment \verb|i| goes to stream \verb|i \% 4|), taking care of appropriate boundary conditions. We use \verb|cudaMemcpyAsync| for D-to-H and H-to-D memory transfer. For the kernel launch configuration, we use 1024 threads per block, and the number of blocks that the kernel acts on is $\ceil{S_{seg} / 1024}$ (except for the last segment which might include less than $S_{seg}$ elements. 
+
 \subsection{Normal vs Streamed GPU Vector Addition}
+\label{sec:q2_part1}
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=.75\textwidth]{../images/q2/part1.png}
+  \end{center}
+  \caption{Normal vs Streamed GPU Vector Addition Keeping $S_{seg}$ Constant}\label{fig:ex2_part1}
+\end{figure}
+Figure \ref{fig:ex2_part1} shows the log-log plot comparing the runtime of the Normal GPU Vector Addition (from Assignment 1) with the Streamed Implementation. We vary the vector-length while keeping the segment size ($S_{seg}$) at a constant of 102,400. We see that for all vector lengths, the streamed version of vector addition is \textbf{faster} than the normal vector addition on the GPU. The reason for this is likely the communication-computation overlap, which allows each of the streams in the the streamed vector addition to begin computation independently of other streams instead of waiting for the entire data to be transferred before computing (which is the case with normal vector addition). 
+
+We see that as the number of elements in the input vectors increase, so does the runtime of the streamed version (and the normal version). This is likely because we are keeping the number of streams and the segment size constant, and thus the same streams now need to deal with a higher number of segments, which makes the streamed version's runtime approach the runtime of the normal implementation. The cost of creating and handling the higher number of segments (for eg: more kernel launches) is also likely contributing to the increased runtime of the streamed vector addition as the input length increases. 
+
+The raw data for the plot presented in Figure \ref{fig:ex2_part1} is available in the \verb|q2/normal_v_streams.txt| file. We see that we get a speedup of up to \textbf{15x} for the smallest vector length, with the speedup gradually decreasing as we increase the vector lengths and the streamed runtime approaches the normal runtime. The speedup in the streamed version for the longest vector length is around \textbf{1.44x}. The likely reasons for why the streamed version approaches the normal version in runtime as we increase the vector length but keep the number of streams and segment size constant was discussed above.
+
+The python script to run the experiment is \verb|q2/normal_vs_streams.py|, which generates the results \verb|.txt| file above. To plot the file, the \verb|q2/plot.py| file was used. The runtimes were obtained on the School GPU Cluster with the H100 GPUs. 
+
 \subsection{Profiling Using nvprof}
+We ran \verb|nvprof| on Google Colab with the Tesla T4 GPUs. The \verb|q2/colab.ipynb| file contains the short Jupyter Notebook containing information about the \verb|nvprof| run. The file obtained from the \verb|nvprof| run is available in the \verb|q2/| directory with the name \verb|vector_addition_streams.nvvp|.
+Unfortunately, we had a lot of issues installing the NVIDIA Visual Profiler on an M1 Macbook. We made a Canvas post about it \href{https://canvas.kth.se/courses/57317/discussion_topics/513951}{here}. We tried a few versions but faced the same problem. As a workaround, we even tried to install an Ubuntu VM using UTM on the MacOS and tried to get the NVIDIA CUDA Toolkit, but there we also faced issues with the toolkit and some of the tools not installing properly. When we were finally able to install NVVP on a MacOS laptop, the CUDA versions seem to be an issue. The Visual Profiler is available for MacOS up to CUDA 12.4, but the CUDA \verb|nvprof| version used on Google Colab seems to now be CUDA 12.5. Because of this, we got \textit{Unsupported File Type} errors when trying to visualize the profiling file in NVVP v12.4. Finally, trying to use the School GPU Cluster did not work either, since even though \verb|nvprof| version there is 12.4, using \verb|nvprof| gives us a \textit{nvprof is not supported on devices with compute capability 8.0 and higher} error.
+
+Because of this, unfortunately we are not able to present a visualization of the profiling file we obtained from \verb|nvprof|. However, the file profiled using is included with our assignment submission, and given the runtimes and speedup we observed in Section \ref{sec:q2_part1}, we believe that there is a computation-communication overlap because of our usage of streams. We believe that visualizing this file NVVP from CUDA 12.5 should show this overlap. 
+
 \subsection{Impact of Segment Size on Runtime}
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=.75\textwidth]{../images/q2/part3.png}
+  \end{center}
+  \caption{Impact of Segment Size on Runtime of Streamed Vector Addition (keeping $n$ constant)}\label{fig:ex2_part3}
+\end{figure}
+
+Figure \ref{fig:ex2_part3} is a log-log plot which shows the impact of varying segment size on the runtime of the streamed version. The trend seems to be that the \textbf{runtime decreases} as the segment size increases. Thus, larger segments perform better than smaller segment sizes if the array length and the number of streams are the same. The primary reason for this can be the over head associated with the memory transfers and kernel launches, among other things. 
+
+When there are a larger number of segments, we have more calls to \verb|cudaMemcpyAsync| and more kernel launches. While the memory copies are now async between different streams, there is likely still a overhead and  teardown cost associated with it. The same can be said for the kernel launches. Additionally, operating on segments of smaller size might also mean that the SM is not utilized to the fullest extent -- vector addition is a rather straightforward computation, and doing it on incredibly small segments would mean that the kernel launches are incredibly short lived and the computation might not take as long as the kernel launch overhead. 
+
+We believe that these reasons explain the observations in Figure \ref{fig:ex2_part3}. The raw data for the plot presented in Figure \ref{fig:ex2_part3} is available in the \verb|q2/segments.txt| file.
+
+
+The python script to run the experiment is \verb|q2/segments.py|, which generates the results \verb|.txt| file above. To plot the file, the \verb|q2/plot.py| file was used. The runtimes were obtained on the School GPU Cluster with the H100 GPUs. 
 
 \section{Bonus}
 \section{Appendix}
