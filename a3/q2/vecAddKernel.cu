@@ -136,14 +136,13 @@ int main(int argc, char **argv) {
 
 
     // ================= VECTOR ADDITION THE STREAM WAY ==================
-    double streamStart = cpuSecond();
-    int numSegments = (n + segmentLength - 1) / segmentLength;
-
-
     cudaStream_t stream[STREAMS];
     for (int i = 0; i < STREAMS; i++) {
         cudaStreamCreate(&stream[i]);
     }
+
+    double streamStart = cpuSecond();
+    int numSegments = (n + segmentLength - 1) / segmentLength;
 
     // Segments will be allocated in round-robin fashion.
     // This means segment 0 to stream 0, segment 1 to stream 1, and so on.
@@ -166,7 +165,7 @@ int main(int argc, char **argv) {
         // Each "segment" is now a small vector addition, so determine number of blocks based on the number of elements in the current segment
         dim3 gridStream((totalElements + TPB - 1) / TPB, 1 , 1);
         dim3 tpbStream(TPB, 1, 1);
-        addGpu<<<gridStream, tpbStream, 0, stream[streamId]>>>(&aGpuStream[segmentStart], &bGpuStream[segmentStart], &cGpuStream[segmentStart], segmentLength);
+        addGpu<<<gridStream, tpbStream, 0, stream[streamId]>>>(&aGpuStream[segmentStart], &bGpuStream[segmentStart], &cGpuStream[segmentStart], totalElements);
 
         // Async copt from host to device
         cudaMemcpyAsync(&cGpuStreamCopy[segmentStart], &cGpuStream[segmentStart], totalElements * sizeof(double), cudaMemcpyDeviceToHost, stream[streamId]);
