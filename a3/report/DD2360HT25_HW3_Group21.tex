@@ -269,7 +269,7 @@ The raw data for the plot presented in Figure \ref{fig:ex2_part1} is available i
 The python script to run the experiment is \verb|q2/normal_vs_streams.py|, which generates the results \verb|.txt| file above. To plot the file, the \verb|q2/plot.py| file was used. The runtimes were obtained on the School GPU Cluster with the H100 GPUs. 
 
 \subsection{Profiling Using nsys}
-We attempted to profile the code using \verb|nvprof| but kept running in to various issues (likely because both group members have MacOS). Some of the issues are document here \href{https://canvas.kth.se/courses/57317/discussion_topics/513951}{here}. Eventually, thanks to Gabin Schieffer's suggestion, we used \verb|nsys| instead, and then visualized the generated profile using NVIDIA Nsight Systems, which seems to have worked.
+We attempted to profile the code using \verb|nvprof| but kept running in to various issues (likely because both group members have MacOS). Some of the issues are document \href{https://canvas.kth.se/courses/57317/discussion_topics/513951}{here}. Eventually, thanks to Gabin Schieffer's suggestion, we used \verb|nsys| instead, and then visualized the generated profile using NVIDIA Nsight Systems, which seems to have worked.
 
 The profiling was done on the H100 GPUs present on the School's GPU Cluster, and the following command was used: 
 \begin{center}
