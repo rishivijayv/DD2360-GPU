@@ -1,6 +1,5 @@
 # Question 2
 For all these instructions, we assume you are in the `q2/` directory. This directory has:
-- `colab.ipynb`: Google Colab Notebook containing the short `nvprof` command to get traces for a run of the program on Google Colab
 - `Makefile`: Contains the compiling commands
 - `normal_v_streams.txt`: Contains the raw data plotted for comparing the runtime of streamed version and the normal version of addition on the GPU (keeping segment size constant)
 - `normal_vs_streams.py`: The python file which runs the experiment to generate the data in the `normal_v_streams.txt` file (ie, part1)
@@ -8,8 +7,8 @@ For all these instructions, we assume you are in the `q2/` directory. This direc
 - `README.md`: This file :) 
 - `segments.py`: The python file which runs the experiments to generate the data for the impact of segment size on the streamed version of vector addition (keeping the vector length constant) -- ie, part3
 - `segments.txt`: Contains the raw data plotted for comparing the impact of segment size on the performance of the streamed vector addition version
+- `streamed_vec_add.nsys-rep`: Contains a trace obtained using `nsys` on the H100 GPU on the School's Cluster. Can be visualized using the NVIDIA Nsight Systems program.
 - `vecAddKernel.cu`: Contains the code for q2.
-- `vector_addition_streams.nvvp`: Contains a trace obtained using `nvprof` on Google Colab. Should be able to be visualized using CUDA 12.5 NVVP (report contains more information about the issues we ran in to)
 
 ## Compiling the Code
 - Run the command `make`
