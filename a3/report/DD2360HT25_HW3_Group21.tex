@@ -268,11 +268,35 @@ The raw data for the plot presented in Figure \ref{fig:ex2_part1} is available i
 
 The python script to run the experiment is \verb|q2/normal_vs_streams.py|, which generates the results \verb|.txt| file above. To plot the file, the \verb|q2/plot.py| file was used. The runtimes were obtained on the School GPU Cluster with the H100 GPUs. 
 
-\subsection{Profiling Using nvprof}
-We ran \verb|nvprof| on Google Colab with the Tesla T4 GPUs. The \verb|q2/colab.ipynb| file contains the short Jupyter Notebook containing information about the \verb|nvprof| run. The file obtained from the \verb|nvprof| run is available in the \verb|q2/| directory with the name \verb|vector_addition_streams.nvvp|.
-Unfortunately, we had a lot of issues installing the NVIDIA Visual Profiler on an M1 Macbook. We made a Canvas post about it \href{https://canvas.kth.se/courses/57317/discussion_topics/513951}{here}. We tried a few versions but faced the same problem. As a workaround, we even tried to install an Ubuntu VM using UTM on the MacOS and tried to get the NVIDIA CUDA Toolkit, but there we also faced issues with the toolkit and some of the tools not installing properly. When we were finally able to install NVVP on a MacOS laptop, the CUDA versions seem to be an issue. The Visual Profiler is available for MacOS up to CUDA 12.4, but the CUDA \verb|nvprof| version used on Google Colab seems to now be CUDA 12.5. Because of this, we got \textit{Unsupported File Type} errors when trying to visualize the profiling file in NVVP v12.4. Finally, trying to use the School GPU Cluster did not work either, since even though \verb|nvprof| version there is 12.4, using \verb|nvprof| gives us a \textit{nvprof is not supported on devices with compute capability 8.0 and higher} error.
+\subsection{Profiling Using nsys}
+We attempted to profile the code using \verb|nvprof| but kept running in to various issues (likely because both group members have MacOS). Some of the issues are document here \href{https://canvas.kth.se/courses/57317/discussion_topics/513951}{here}. Eventually, thanks to Gabin Schieffer's suggestion, we used \verb|nsys| instead, and then visualized the generated profile using NVIDIA Nsight Systems, which seems to have worked.
 
-Because of this, unfortunately we are not able to present a visualization of the profiling file we obtained from \verb|nvprof|. However, the file profiled using is included with our assignment submission, and given the runtimes and speedup we observed in Section \ref{sec:q2_part1}, we believe that there is a computation-communication overlap because of our usage of streams. We believe that visualizing this file NVVP from CUDA 12.5 should show this overlap. 
+The profiling was done on the H100 GPUs present on the School's GPU Cluster, and the following command was used: 
+\begin{center}
+\verb|nsys profile ./vecAdd 1024000 10240 0 0|
+\end{center}
+
+This generated a \verb|.nsys-rep| file which has been added to the \verb|q2/| directory in the code zip file. This run used a vector of length 1024000 with segment sizes of 10240. Only the streamed version of vector addition was performed here (refer to the \verb|README.md| for details on what the command line arguments for \verb|./vecAdd| mean). 
+
+ \begin{figure}
+\centering
+\begin{subfigure}{0.8\textwidth}
+    \includegraphics[width=\textwidth]{../images/q2/part2_htod_overlap.png}
+    \caption{H-to-D Overlap with Computation}
+    \label{fig:ex2_part2_dtoh}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.8\textwidth}
+    \includegraphics[width=\textwidth]{../images/q2/part2_dtoh_overlap.png}
+    \caption{D-to-H Overlap with Computation}
+    \label{fig:ex2_part2_htod}
+\end{subfigure}
+        
+\caption{Instances H-to-D and D-to-H overlap with computation in the profiled code}
+\label{fig:ex2_part2}
+\end{figure}
+
+Figure \ref{fig:ex2_part2} shows instances of H-to-D and D-to-H overlap with computation (the \verb|addGpu| kernel), showing that the usage of streams does indeed cause overlap of computation with communication (in both directions) in the 4 streams that we are using.
 
 \subsection{Impact of Segment Size on Runtime}
 \begin{figure}[t]
