@@ -316,6 +316,78 @@ We believe that these reasons explain the observations in Figure \ref{fig:ex2_pa
 The python script to run the experiment is \verb|q2/segments.py|, which generates the results \verb|.txt| file above. To plot the file, the \verb|q2/plot.py| file was used. The runtimes were obtained on the School GPU Cluster with the H100 GPUs. 
 
 \section{Bonus}
+Goal of this bonus section was to port the \verb|mover_PC()| function of a simplified particle-in-cell solver to the GPU.
+
+\subsection{Implementation Design}
+The main challenge of this task is to set up the data movement between the GPU and CPU.
+This is particularly annoying, because the data is stored as arrays within \texttt{structs}, meaning, if copied to the GPU, the copied \texttt{struct} would just contain an invalid pointer (pointing to CPU memory).
+We solved this using a two stage process. First we allocate the array on the GPU, then we allocate the \texttt{struct}, replacing the CPU pointer with the GPU pointer.
+
+To actually parallelize the code, we made the following observation:
+\begin{lstlisting}[language=c++, caption=Interchangeble for loop ordering, label=lst:bonus1]
+// start subcycling
+for (int i_sub = 0; i_sub < part->n_sub_cycles; i_sub++) {
+  // move each particle with new fields
+  for (int i = 0; i < part->nop; i++) {
+    ...
+  }
+}
+\end{lstlisting}
+Listing~\ref{lst:bonus1} shows two for loops within the \verb|mover_PC| function.
+The key observation is that we can change the ordering of these two loops without changing the behaviour of the code.
+First, \verb|n_sub_cycles| is 1 for our test file, but more importantly, all particle computations are independent from each other.
+Additionally, within the \verb|mover_PC| method, the electric fields are READ-ONLY.
+This allows us to iterate first over all particles, and then perform the sub-cycling per particle.
+Our parallelization strategy is to perform the loop for each particle in parallel.
+
+\begin{lstlisting}[language=c++, caption=GPU Memory Allocation, label=lst:bonus2]
+struct particles *d_part = nullptr;
+
+struct particles l_part = *part;
+
+FPpart *d_part_x = nullptr;
+FPpart *d_part_y = nullptr;
+FPpart *d_part_z = nullptr;
+FPpart *d_part_u = nullptr;
+FPpart *d_part_v = nullptr;
+FPpart *d_part_w = nullptr;
+
+cudaMalloc(&d_part_x, size_part);
+cudaMalloc(&d_part_y, size_part);
+cudaMalloc(&d_part_z, size_part);
+cudaMalloc(&d_part_u, size_part);
+cudaMalloc(&d_part_v, size_part);
+cudaMalloc(&d_part_w, size_part);
+
+cudaMemcpy(d_part_x, part->x, size_part, cudaMemcpyHostToDevice);
+cudaMemcpy(d_part_y, part->y, size_part, cudaMemcpyHostToDevice);
+cudaMemcpy(d_part_z, part->z, size_part, cudaMemcpyHostToDevice);
+cudaMemcpy(d_part_u, part->u, size_part, cudaMemcpyHostToDevice);
+cudaMemcpy(d_part_v, part->v, size_part, cudaMemcpyHostToDevice);
+cudaMemcpy(d_part_w, part->w, size_part, cudaMemcpyHostToDevice);
+
+cudaMalloc(&d_part, sizeof(struct particles));
+
+cudaMemcpy(d_part, &l_part, sizeof(struct particles), cudaMemcpyHostToDevice);
+\end{lstlisting}
+
+Listing~\ref{lst:bonus2} demonstrates how the memory allocation is performed (only for the particle struct, the other ones follow are done correspondingly).
+We want to highlight the creation of a local copy \verb|l_part| which we use to store the respective \verb|d_part_?| pointers.
+When we then allocate and copy \verb|l_part| into \verb|d_part|, the \verb|struct| contains the device pointers instead of host pointers.
+
+\subsection{Correctness}
+We ran the simulation for the provided test file for 600 iterations.
+The output files after the final iteration contain differences.
+We attribute this to rounding/precision differences between the GPU and CPU.
+Visualizing\footnote{Visualization of the \href{https://github.com/rishivijayv/DD2360-GPU/blob/main/a3/videos/cpu.avi}{CPU computation} and \href{https://github.com/rishivijayv/DD2360-GPU/blob/main/a3/videos/gpu.avi}{GPU computation}} the simulation does not show any visible distinctions.
+A sensible next step would be to quantify the numerical errors, but reserve this for the project.
+
+\subsection{Performance}
+We ran both version for 50 iterations.
+The output shows the average time spent in both the \verb|mover_PC| and \verb|?| method.
+\itodo{insert runtimes, can't access gpu cluster rn for whatever reason}
+We can clearly see \mtodo{insert analysis} blah blah blah.
+
 \section{Appendix}
 
 % content end
