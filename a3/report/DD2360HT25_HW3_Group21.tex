@@ -173,7 +173,7 @@
 % \newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
 
 
-\newcommand{\itodo}[2][yellow]{\todo[inline, color=#1!40]{#2}}
+\newcommand{\itodo}[2][yellow]{\vspace{0.5em}\todo[inline, color=#1!40]{#2}}
 \newcommand{\mtodo}[2][orange]{\todo[color=#1!40]{#2}}
 
 
@@ -387,6 +387,16 @@ We ran both version for 50 iterations.
 The output shows the average time spent in both the \verb|mover_PC| and \verb|?| method.
 \itodo{insert runtimes, can't access gpu cluster rn for whatever reason}
 We can clearly see \mtodo{insert analysis} blah blah blah.
+
+The goal of this task was to get a basic implementation running.
+We preserve further profiling and performance improvements for the project.
+Following ideas would be interesting to investigate:
+\begin{itemize}
+  \item Low hanging fruit: move the GPU memory allocation outside the \verb|mover_PC| method.
+    At the moment the allocation happens every cycle for every species.
+  \item Another idea could be to use pinned memory to decrease copy operations during \verb|cudaMemcpy|.
+  \item Possibly big performance gains could be achieved by using streams to overlap computation and memory transfer for different species.
+\end{itemize}
 
 \section{Appendix}
 
