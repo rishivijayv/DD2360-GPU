@@ -35,6 +35,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	[ -d $(OBJDIR) ] || mkdir $(OBJDIR)
 	$(NVCC) $(CXXFLAGS) $< -c -o $@
 
+use_gpu: 
+  NVCCFLAGS= $(NVCCFLAGS) -D USE_GPU
+	dir $(BIN)/$(TARGET)
 clean:
 	rm -rf $(OBJS)
 	rm -rf $(TARGET)
