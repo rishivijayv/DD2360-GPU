@@ -4,8 +4,6 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define USE_GPU
-
 /** allocate particle arrays */
 void particle_allocate(struct parameters *param, struct particles *part,
                        int is) {
