@@ -4,6 +4,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#define USE_GPU
+
 /** allocate particle arrays */
 void particle_allocate(struct parameters *param, struct particles *part,
                        int is) {
@@ -70,6 +72,8 @@ void particle_deallocate(struct particles *part) {
   delete[] part->w;
   delete[] part->q;
 }
+
+#ifndef USE_GPU
 
 /** particle mover */
 int mover_PC(struct particles *part, struct EMfield *field, struct grid *grd,
@@ -229,6 +233,7 @@ int mover_PC(struct particles *part, struct EMfield *field, struct grid *grd,
 
   return (0); // exit succcesfully
 } // end of the mover
+#endif
 
 /** Interpolation Particle --> Grid: This is for species */
 void interpP2G(struct particles *part, struct interpDensSpecies *ids,
@@ -374,6 +379,7 @@ void interpP2G(struct particles *part, struct interpDensSpecies *ids,
   }
 }
 
+#ifdef USE_GPU
 __global__ void move_particle_gpu(struct particles *part, struct EMfield *field,
                                   struct grid *grd, struct parameters *param) {
 
@@ -679,3 +685,4 @@ int mover_PC_gpu(struct particles *part, struct EMfield *field,
 
   return 0;
 }
+#endif
