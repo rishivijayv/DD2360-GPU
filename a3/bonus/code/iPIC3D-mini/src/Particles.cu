@@ -545,8 +545,8 @@ __global__ void move_particle_gpu(struct particles *part, struct EMfield *field,
 #undef IDX
 }
 
-int mover_PC_gpu(struct particles *part, struct EMfield *field,
-                 struct grid *grd, struct parameters *param) {
+int mover_PC(struct particles *part, struct EMfield *field, struct grid *grd,
+             struct parameters *param) {
   // print species and subcycling
   std::cout << "***  MOVER with SUBCYCLYING " << param->n_sub_cycles
             << " - species " << part->species_ID << " ***" << std::endl;
