@@ -10,8 +10,6 @@ NVCCFLAGS= -I./include -arch=$(ARCH) -std=c++11 -O3 -g -Xcompiler -Wall --compil
 SRCDIR=src
 SRCS=$(shell find $(SRCDIR) -name '*.cu' -o -name '*.cpp')
 
-GPU= -D USE_GPU
-
 OBJDIR=src
 OBJS=$(subst $(SRCDIR),$(OBJDIR), $(SRCS))
 OBJS:=$(subst .cpp,.o,$(OBJS))
@@ -20,25 +18,28 @@ OBJS:=$(subst .cu,.o,$(OBJS))
 BIN := ./bin
 TARGET=miniPIC.out
 
+cpu: DEVICE=USE_CPU
+cpu: all
+
+gpu: DEVICE=USE_GPU
+gpu: all
+
 all: dir $(BIN)/$(TARGET)
 
-dir: ${BIN} ${GPU}
+dir: ${BIN}
   
 ${BIN}:
 	mkdir -p $(BIN)
 
 $(BIN)/$(TARGET): $(OBJS)
-	$(NVCC) $(NVCCFLAGS) $+ -o $@
+	$(NVCC) $(NVCCFLAGS) -D$(DEVICE) $+ -o $@
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.cu
-	$(NVCC) $(NVCCFLAGS) $(GPU) $< -c -o $@
+	$(NVCC) $(NVCCFLAGS) -D$(DEVICE) $< -c -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	[ -d $(OBJDIR) ] || mkdir $(OBJDIR)
-	$(NVCC) $(CXXFLAGS) $< -c -o $@
-
-use_gpu: 
-	dir $(BIN)/$(TARGET) $(GPU)
+	$(NVCC) $(CXXFLAGS) -D$(DEVICE) $< -c -o $@
 
 clean:
 	rm -rf $(OBJS)
