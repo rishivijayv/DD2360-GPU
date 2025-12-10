@@ -1,0 +1,213 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,
+            bindingoffset=0.2in,
+            left=1in,
+            right=1in,
+            top=1in,
+            bottom=1in,
+            footskip=.25in]{geometry}
+
+%###############################################################################
+
+%\input{~/layout/global_layout}
+
+
+%###############################################################################
+
+% packages begin
+
+\usepackage[
+  backend=biber,
+  sortcites=true,
+  style=alphabetic,
+  eprint=true,
+  backref=true
+]{biblatex}
+\addbibresource{bibliographie.bib}
+\usepackage[acronym]{glossaries}
+\usepackage{multirow}
+\usepackage{euscript}[mathcal]
+% e.g. \mathcal{A} for fancy letters in mathmode
+\usepackage{amsmath,amssymb,amstext,amsthm}
+
+\usepackage{mdframed}
+\newmdtheoremenv[nobreak=true]{problem}{Problem}[subsection]
+\newmdtheoremenv[nobreak=true]{claim}{Claim}[subsection]
+\newtheorem{definition}{Definition}[subsection]
+\newtheorem{lemma}{Lemma}[claim]
+\newtheorem{plemma}{Lemma}[problem]
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\usepackage{enumerate}
+\usepackage[pdftex]{graphicx}
+\usepackage{subcaption}
+% 'draft' für schnelleres rendern mitübergeben -> [pdftex, draft]
+% dadruch wird nicht das bild mitgerendered, sondern nur ein kasten mit bildname -> schont ressourcen
+
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,matrix,positioning,shapes}
+
+% for adding non-formatted text to include source-code
+\usepackage{listings}
+\lstset{language=Python,basicstyle=\footnotesize}
+% z.B.:
+% \lstinputlisting{source_filename.py}
+% \lstinputlisting[lanugage=Python, firstline=37, lastline=45]{source_filename.py}
+%
+% oder
+%
+% \begin{lstlisting}[frame=single]
+% CODE HERE
+%\end{lstlisting}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{wasysym}
+
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage[nocheck]{fancyhdr}
+\usepackage{lastpage}
+
+\usepackage{kantlipsum}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+% packages end
+%###############################################################################
+
+\pretitle{% add some rules
+  \begin{center}
+    \LARGE\bfseries
+} %, make the fonts bigger, make the title (only) bold
+\posttitle{%
+  \end{center}%
+  %\vskip .75em plus .25em minus .25em% increase the vertical spacing a bit, make this particular glue stretchier
+}
+\predate{%
+  \begin{center}
+    \normalsize
+}
+\postdate{%
+  \end{center}%
+}
+
+\titleformat*{\section}{\Large\bfseries}
+\titleformat*{\subsection}{\large\bfseries}
+\titleformat*{\subsubsection}{\normalsize\bfseries}
+
+\titleformat*{\paragraph}{\Large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+%###############################################################################
+
+\pagestyle{fancy}
+\fancyhf{}
+% l=left, c=center, r=right; e=even_pagenumber, o=odd_pagenumber; h=header, f=footer
+% example: [lh] -> left header, [lof,ref] -> fotter left when odd, right when even
+%\fancyhf[lh]{}
+%\fancyhf[ch]{}
+%\fancyhf[rh]{}
+%\fancyhf[lf]{}
+\fancyhf[cf]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+%\fancyhf[rf]{}
+\renewcommand{\headrule}{} % removes horizontal header line
+
+% Fotter options for first page
+
+\fancypagestyle{firstpagestyle}{
+  \renewcommand{\thedate}{\textmd{}} % removes horizontal header line
+  \fancyhf{}
+  \fancyhf[lh]{\ttfamily M.Sc. Computer Science\\KTH Royal Institute of Technology}
+  \fancyhf[rh]{\ttfamily Period 2\\\today}
+  \fancyfoot[C]{\footnotesize Page \thepage\ of \pageref*{LastPage}}
+  \renewcommand{\headrule}{} % removes horizontal header line
+}
+%###############################################################################
+
+\newcommand\extrafootertext[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
+
+%###############################################################################
+
+\title{
+  \normalsize{DD2356 HT25 Applied}\\
+  \normalsize{GPU Programming}\\
+  \large{Assignment 4}
+}
+\author{
+  \small Paul Mayer\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{pmayer@kth.se}
+  \and
+  \small Rishi Vijayvargiya\textsuperscript{\textdagger}\\[-0.75ex]
+%  \footnotesize\texttt{MN: }\\[-1ex]
+  \scriptsize\texttt{rishiv@kth.se}
+}
+\date{}
+
+
+%###############################################################################
+% define Commands
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\I}{\mathbb{I}}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\renewcommand{\epsilon}{\varepsilon}
+
+
+\newcommand{\itodo}[2][yellow]{\todo[inline, color=#1!40]{#2}}
+\newcommand{\mtodo}[2][orange]{\todo[color=#1!40]{#2}}
+
+
+
+%###############################################################################
+\makeatletter
+\renewcommand*{\@fnsymbol}[1]{\ensuremath{\ifcase#1\or \dagger\or \ddagger\or
+   \mathsection\or \mathparagraph\or \|\or **\or \dagger\dagger
+   \or \ddagger\ddagger \else\@ctrerr\fi}}
+\makeatother
+%###############################################################################
+
+\begin{document}
+\maketitle
+\extrafootertext{\textsuperscript{\textdagger}Authors made equal contribution to the project}
+\thispagestyle{firstpagestyle}
+\vspace{1em}
+
+% content begin
+%
+
+\section*{Prefix}
+The code for our project was submitted as a zip file.
+You can find code for the code-related questions of the assignment under \verb|q[x]/|, where \verb|x| is the question number. 
+
+\tableofcontents
+\newpage
+
+\section{Exercise 1}
+\section{Exercise 2}
+\section{Bonus}
+\section{Appendix}
+
+% content end
+%###############################################################################
+
+% \printbibliography
+
+\end{document}
